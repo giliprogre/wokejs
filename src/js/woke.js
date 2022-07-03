@@ -3,18 +3,8 @@ export default woke = {
         return document.createElement(element.toUpperCase()).toString() != "[object HTMLUnknownElement]";
     },
 
-    createElement(nodeName, attributes, ...args) {
-        console.log("createElement()")
-        console.log(nodeName)
-        console.log(attributes)
-        console.log(args)
-
-        let children = args.length ? [].concat(...args) : null
-        const element = { nodeName, attributes, children }
-
-        console.log('createElement(nodeName: %o, attributes: %o, args: %o)', nodeName, attributes, args)
-        console.log('\treturn: %o', element)
-        return element;
+    createElement(nodeName, attributes, ...children) {
+        return { nodeName, attributes, children };
     },
 
     Fragment() {
@@ -22,35 +12,34 @@ export default woke = {
     },
 
     render(vnode) {
-        // Check for 'String'
-        if (vnode.split) {
-            // For Strings I just create TextNodes
+        // For Strings I just create TextNodes
+        if (typeof vnode === 'string') {
             return document.createTextNode(vnode)
         }
 
-        let element
+        let node
         if (woke.validHTML(vnode.nodeName)) {
-            element = document.createElement(vnode.nodeName)
+            node = document.createElement(vnode.nodeName)
         }
         else {
-            console.log("TODO")
+            console.log("TODO: Render User-defined components")
+            return null
         }
 
-        // Copy attributes onto the new element
-        let attributes = {}
-        attributes = vnode.attributes || {};
-        Object.keys(attributes).forEach(a => { element.setAttribute(a, attributes[a]) })
-
-        // render (build) and then append child nodes:
-        if (Array.isArray(vnode.children)) {
-            (vnode.children || []).forEach(child => element.appendChild(woke.render(child)));
+        // Copy attributes onto the new node
+        for(let name in Object(vnode.attributes))
+        {
+            node.setAttribute(name, vnode.attributes[name])
         }
-        else {
-            console.log("vnode.children is not an Array")
-            console.log(vnode.children)
+        
+        // Render child nodes and then append them
+        for(let i = 0; i < vnode.children.length; i++)
+        {
+            let child = woke.render(children[i])
+            node.appendChild(child)
         }
 
-        return element;
+        return node;
     },
 
     awake: () => { },
