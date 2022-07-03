@@ -6,7 +6,6 @@ let jokeText = ""
 function createJoke() {
 
     const getJoke = () => {
-        console.log('executing getJoke()')
         const config = {
             headers: {
                 Accept: 'application/json'
@@ -14,11 +13,7 @@ function createJoke() {
         }
 
         axios.get('https://icanhazdadjoke.com', config).then(res => {
-            console.log('resetting joke\'s inner html')
-            //document.getElementById('joke').innerHTML = res.data.joke
-            console.log("The previous content of jokeTest was: %s", jokeText)
             jokeText = woke.updateState(res.data.joke)
-            console.log("Now the content of jokeTest is: %s", jokeText)
         })
     }
 
