@@ -97,9 +97,9 @@ export default woke = {
         }
     },
 
-    awake: () => { },
+    app: () => { },
 
-    run(id) {
+    awake(id) {
         if (!id || !(id.split)) {
             id = "woke"
         }
@@ -114,7 +114,7 @@ export default woke = {
                 // Have to render another pass
                 try {
                     old_vdom = new_vdom
-                    new_vdom = woke.awake()
+                    new_vdom = woke.app()
 
                     root = document.getElementById(id)
                     console.log(root)
@@ -134,7 +134,7 @@ export default woke = {
             if (woke.VDOMisDirty()) {
                 // Have to render another pass
                 try {
-                    let vdom = woke.awake()
+                    let vdom = woke.app()
                     let root = document.getElementById(id)
                     woke.renderDiff(root.childNodes, vdom)
                 } catch (error) {

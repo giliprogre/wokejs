@@ -4,7 +4,7 @@ import "./styles/main.scss"
 import logo from './assets/logo.png'
 import Video from './js/Video'
 
-woke.awake = () => {
+woke.app = () => {
 
     return (
         <div>
@@ -18,4 +18,4 @@ woke.awake = () => {
     )
 }
 
-woke.run("woke")
+woke.awake("woke")
