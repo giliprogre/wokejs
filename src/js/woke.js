@@ -56,8 +56,8 @@ export default woke = {
             if (name === 'onEvent') {
                 console.log('event: %s -> callback: %o', vnode.attributes[name][0], vnode.attributes[name][1])
                 node.addEventListener(vnode.attributes[name][0], () => {
-                    woke.tarnishVDOM()
                     vnode.attributes[name][1]()
+                    woke.tarnishVDOM()
                 })
             }
             else {
