@@ -18,4 +18,4 @@ woke.app = () => {
     )
 }
 
-woke.awake("woke")
+woke.awake("app")

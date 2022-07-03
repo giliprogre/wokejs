@@ -1,4 +1,4 @@
-export default woke = {
+let woke = {
     __dirtyVDOM: 0,
     __debug: true,
     __info: true,
@@ -203,9 +203,10 @@ export default woke = {
 
     app: () => { },
 
-    awake(id) {
-        if (!id || !(id.split)) {
-            id = "woke"
+    awake(_id) {
+        let id = _id
+        if (!id) {
+            woke.id = "app"
         }
 
         let new_vdom = null
@@ -256,3 +257,5 @@ export default woke = {
         renderLoop2()
     }
 }
+
+export default woke
