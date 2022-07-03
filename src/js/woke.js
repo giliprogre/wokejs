@@ -19,12 +19,12 @@ export default woke = {
     addElement2DOM(node, element) {
         if (Array.isArray(element)) {
             for (let i = 0; i < element.length; i++) {
-                console.log("1 - node.appendChild(%o)", element[i])
+                //console.log("1 - node.appendChild(%o)", element[i])
                 node.appendChild(element[i])
             }
         }
         else {
-            console.log("2 - node.appendChild(%o)", element)
+            //console.log("2 - node.appendChild(%o)", element)
             node.appendChild(element)
         }
     },
