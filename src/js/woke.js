@@ -20,6 +20,11 @@ export default woke = {
     },
 
     validHTML(element) {
+        if (!element) {
+            return false
+        }
+
+        //console.log("Checking valid HTML tag: %o", element)
         return document.createElement(element.toUpperCase()).toString() != "[object HTMLUnknownElement]";
     },
 
@@ -27,8 +32,9 @@ export default woke = {
         return { nodeName, attributes, children };
     },
 
-    Fragment() {
-
+    Fragment(nodeName, attributes, ...children) {
+        //console.log('Fragment(nodeName: %o, attributes: %o, children: %o)', nodeName, attributes, children)
+        return { nodeName: "__Fragment", attributes: null, children };
     },
 
     updateState(value) {
@@ -37,9 +43,28 @@ export default woke = {
     },
 
     renderVDOM(vnode) {
+        if (!vnode) {
+            console.log("woke.renderVDOM(%o)", vnode)
+            return null
+        }
+
+        console.log("%o vnode: %o = %o", vnode.nodeName, typeof vnode, vnode)
+
         // For Strings I just create TextNodes
         if (typeof vnode === 'string') {
+            console.log("vnode is a string, create a TextNode")
             return document.createTextNode(vnode)
+        }
+
+        if (typeof vnode.nodeName === "function") {
+            console.log("vnode: %o is a Fragment, render its children: %o", vnode, vnode.children)
+
+            let children = []
+            for (let i = 0; i < vnode.children.length; i++)
+            {
+                children.push(woke.renderVDOM(vnode.children[i]))
+            }
+            return children
         }
 
         let node
@@ -47,14 +72,15 @@ export default woke = {
             node = document.createElement(vnode.nodeName)
         }
         else {
-            console.log("TODO: Render User-defined components")
+            //console.log("Trying to render vnode: %o", vnode)
+            //console.log("TODO: Render User-defined components")
             return null
         }
 
         // Copy attributes onto the new node
         for (let name in Object(vnode.attributes)) {
             if (name === 'onEvent') {
-                console.log('event: %s -> callback: %o', vnode.attributes[name][0], vnode.attributes[name][1])
+                //console.log('event: %s -> callback: %o', vnode.attributes[name][0], vnode.attributes[name][1])
                 node.addEventListener(vnode.attributes[name][0], () => {
                     vnode.attributes[name][1]()
                     woke.tarnishVDOM()
@@ -82,13 +108,12 @@ export default woke = {
             for (let i = 0; i < Object.keys(vdom).length; i++) {
                 let node = dom[i]
                 let vnode = Object.keys(vdom)[i]
-                console.log(node)
-                console.log(vnode)
+                //console.log(node)
+                //console.log(vnode)
             }
         }
         else {
-            if (dom.length > 0)
-            {
+            if (dom.length > 0) {
                 console.log("compare dom with a vdom of a single element")
             }
             else {
@@ -117,10 +142,24 @@ export default woke = {
                     new_vdom = woke.app()
 
                     root = document.getElementById(id)
-                    console.log(root)
+                    //console.log(root)
                     new_dom = woke.renderVDOM(new_vdom)
-                    root.innerHTML = ""
-                    root.appendChild(new_dom)
+                    if (new_dom) {
+                        root.innerHTML = ""
+                        //console.log("new_dom: %o", new_dom)
+                        if(Array.isArray(new_dom))
+                        {
+                            for(let i = 0; i < new_dom.length; i++)
+                            {
+                                //console.log("new_dom[%i]: %o", i, new_dom[i])
+                                root.appendChild(new_dom[i])
+                            }
+                        }
+                        else
+                        {
+                            root.appendChild(new_dom)
+                        }
+                    }
                 } catch (error) {
                     console.log(error)
                 }
