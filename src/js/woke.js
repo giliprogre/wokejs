@@ -142,7 +142,7 @@ export default woke = {
         }
         else if (vdom && Array.isArray(vdom)) {
             woke.debug("dom is an element, vdom is an array")
-            woke.debug("Compare [] to element. Array can be empty, and element can be null")
+            woke.debug("Compare element to []. Array can be empty, and element can be null")
         }
         else if (dom && vdom) {
             woke.debug("Both dom & vdom exist, and both of them are elements")
