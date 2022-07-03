@@ -36,7 +36,7 @@ export default woke = {
         return value
     },
 
-    render(vnode) {
+    renderVDOM(vnode) {
         // For Strings I just create TextNodes
         if (typeof vnode === 'string') {
             return document.createTextNode(vnode)
@@ -67,11 +67,34 @@ export default woke = {
 
         // Render child nodes and then append them
         for (let i = 0; i < vnode.children.length; i++) {
-            let child = woke.render(vnode.children[i])
+            let child = woke.renderVDOM(vnode.children[i])
             node.appendChild(child)
         }
 
         return node;
+    },
+
+    renderDiff(dom, vdom) {
+        console.log("renderDiff(dom: %o, vdom: %o)", dom, vdom)
+
+        if (Array.isArray(vdom)) {
+            console.log("compare dom with a vdom of multiple elements")
+            for (let i = 0; i < Object.keys(vdom).length; i++) {
+                let node = dom[i]
+                let vnode = Object.keys(vdom)[i]
+                console.log(node)
+                console.log(vnode)
+            }
+        }
+        else {
+            if (dom.length > 0)
+            {
+                console.log("compare dom with a vdom of a single element")
+            }
+            else {
+                console.log("render vdom")
+            }
+        }
     },
 
     awake: () => { },
@@ -81,14 +104,39 @@ export default woke = {
             id = "woke"
         }
 
+        let new_vdom = null
+        let old_vdom = null
+        let root = null
+        let new_dom = null
+
         const renderLoop = () => {
             if (woke.VDOMisDirty()) {
                 // Have to render another pass
                 try {
-                    let dom = woke.render(woke.awake())
-                    let root = document.getElementById(id)
+                    old_vdom = new_vdom
+                    new_vdom = woke.awake()
+
+                    root = document.getElementById(id)
+                    console.log(root)
+                    new_dom = woke.renderVDOM(new_vdom)
                     root.innerHTML = ""
-                    root.appendChild(dom)
+                    root.appendChild(new_dom)
+                } catch (error) {
+                    console.log(error)
+                }
+                woke.cleanVDOM()
+            }
+
+            setTimeout(renderLoop, 40);
+        }
+
+        const renderLoop2 = () => {
+            if (woke.VDOMisDirty()) {
+                // Have to render another pass
+                try {
+                    let vdom = woke.awake()
+                    let root = document.getElementById(id)
+                    woke.renderDiff(root.childNodes, vdom)
                 } catch (error) {
                     console.log(error)
                 }
@@ -99,6 +147,6 @@ export default woke = {
         }
 
         woke.tarnishVDOM()
-        renderLoop()
+        renderLoop2()
     }
 }
