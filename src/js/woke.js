@@ -1,30 +1,56 @@
 export default woke = {
-    dirtyVDOM: 0,
+    __dirtyVDOM: 0,
+    __debug: true,
+    __info: true,
+    __print: true,
+
+    debug(...val) {
+        if (woke.__debug) {
+            console.log(...val)
+        }
+    },
+
+    info(...val) {
+        if (woke.__info) {
+            console.log(...val)
+        }
+    },
+
+    print(...val) {
+        if (woke.__print) {
+            console.log(...val)
+        }
+    },
+
+    compareNode2VNode(node, vnode) {
+        if(node)
+        return null
+    },
 
     VDOMisDirty() {
-        const res = woke.dirtyVDOM > 0
+        const res = woke.__dirtyVDOM > 0
         return res
     },
 
     tarnishVDOM() {
-        woke.dirtyVDOM++
+        woke.__dirtyVDOM++
     },
 
     cleanVDOM() {
-        if (woke.dirtyVDOM > 0) {
-            woke.dirtyVDOM--
+        if (woke.__dirtyVDOM > 0) {
+            woke.__dirtyVDOM--
         }
     },
 
     addElement2DOM(node, element) {
         if (Array.isArray(element)) {
             for (let i = 0; i < element.length; i++) {
-                //console.log("1 - node.appendChild(%o)", element[i])
+                woke.debug("1 - node.appendChild(%o)", element[i])
                 node.appendChild(element[i])
             }
         }
         else {
-            //console.log("2 - node.appendChild(%o)", element)
+            woke.debug("2 - node.appendChild(%o)", element)
             node.appendChild(element)
         }
     },
@@ -72,8 +98,8 @@ export default woke = {
             node = document.createElement(vnode.nodeName)
         }
         else {
-            console.log("Trying to render vnode: %o", vnode)
-            console.log("TODO: Render User-defined components")
+            woke.debug("Trying to render vnode: %o", vnode)
+            woke.debug("TODO: Render User-defined components")
             return null
         }
 
@@ -102,20 +128,37 @@ export default woke = {
     },
 
     renderDiff(dom, vdom) {
-        if (Array.isArray(vdom)) {
-            console.log("compare dom with a vdom of multiple elements")
-            for (let i = 0; i < Object.keys(vdom).length; i++) {
-                let node = dom[i]
-                let vnode = Object.keys(vdom)[i]
-            }
+        woke.debug("renderDiff(dom: %o, vdom: %o)", dom, vdom)
+        woke.debug("NODE: %o", dom)
+        woke.debug("VNODE: %o", vdom)
+
+        if ((dom && Object.prototype.isPrototypeOf.call(NodeList.prototype, dom)) && (vdom && Array.isArray(vdom))) {
+            woke.debug("Both dom & vdom are lists, dom is a NodeList & vdom is an array")
+            woke.debug("Compare [] to []")
+        }
+        else if (dom && Object.prototype.isPrototypeOf.call(NodeList.prototype, dom)) {
+            woke.debug("dom is a NodeList, vdom is an element")
+            woke.debug("Compare [] to element. NodeList can be empty, and element can be null")
+        }
+        else if (vdom && Array.isArray(vdom)) {
+            woke.debug("dom is an element, vdom is an array")
+            woke.debug("Compare [] to element. Array can be empty, and element can be null")
+        }
+        else if (dom && vdom) {
+            woke.debug("Both dom & vdom exist, and both of them are elements")
+            woke.debug("Compare element to element")
+        }
+        else if (dom && !vdom) {
+            woke.debug("dom exists, and vdom doesn't")
+            woke.debug("Have to destroy dom node")
+        }
+        else if (!dom && vdom) {
+            woke.debug("vdom exists, and dom doesn't")
+            woke.debug("Create new dom node from vnode")
         }
         else {
-            if (dom.length > 0) {
-                console.log("compare dom with a vdom of a single element")
-            }
-            else {
-                console.log("no dom to compare with, render vdom")
-            }
+            woke.print("ERROR - you shouldn't get here")
+            throw("Renderer - Diff error.")
         }
     },
 
@@ -145,7 +188,7 @@ export default woke = {
                         woke.addElement2DOM(root, new_dom)
                     }
                 } catch (error) {
-                    console.log(error)
+                    woke.debug(error)
                 }
                 woke.cleanVDOM()
             }
@@ -161,7 +204,7 @@ export default woke = {
                     let root = document.getElementById(id)
                     woke.renderDiff(root.childNodes, vdom)
                 } catch (error) {
-                    console.log(error)
+                    woke.debug(error)
                 }
                 woke.cleanVDOM()
             }
@@ -170,7 +213,7 @@ export default woke = {
         }
 
         woke.tarnishVDOM()
-        renderLoop()
-        //renderLoop2()
+        //renderLoop()
+        renderLoop2()
     }
 }
