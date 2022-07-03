@@ -17,7 +17,7 @@ function createJoke() {
             console.log('resetting joke\'s inner html')
             //document.getElementById('joke').innerHTML = res.data.joke
             console.log("The previous content of jokeTest was: %s", jokeText)
-            jokeText = res.data.joke
+            jokeText = woke.updateState(res.data.joke)
             console.log("Now the content of jokeTest is: %s", jokeText)
         })
     }

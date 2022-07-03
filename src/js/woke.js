@@ -1,5 +1,23 @@
 export default woke = {
-    dirtyVDOM: false,
+    dirtyVDOM: 0,
+
+    VDOMisDirty() {
+        const res = woke.dirtyVDOM > 0
+        console.log("VDOMisDirty() -> %o", res)
+        return res
+    },
+
+    tarnishVDOM() {
+        woke.dirtyVDOM++
+        console.log("tarnishVDOM() -> %o", woke.dirtyVDOM)
+    },
+
+    cleanVDOM() {
+        if (woke.dirtyVDOM > 0) {
+            woke.dirtyVDOM--
+        }
+        console.log("cleanVDOM() -> %o", woke.dirtyVDOM)
+    },
 
     validHTML(element) {
         return document.createElement(element.toUpperCase()).toString() != "[object HTMLUnknownElement]";
@@ -11,6 +29,11 @@ export default woke = {
 
     Fragment() {
 
+    },
+
+    updateState(value) {
+        woke.tarnishVDOM()
+        return value
     },
 
     render(vnode) {
@@ -33,7 +56,7 @@ export default woke = {
             if (name === 'onEvent') {
                 console.log('event: %s -> callback: %o', vnode.attributes[name][0], vnode.attributes[name][1])
                 node.addEventListener(vnode.attributes[name][0], () => {
-                    woke.dirtyVDOM = true
+                    woke.tarnishVDOM()
                     vnode.attributes[name][1]()
                 })
             }
@@ -58,32 +81,24 @@ export default woke = {
             id = "woke"
         }
 
-        woke.dirtyVDOM = true
-
-        const renderPass = () => {
-            let dom = woke.render(woke.awake())
-
-            let root = document.getElementById(id)
-            root.innerHTML = ""
-
-            root.appendChild(dom)
-        }
-
         const renderLoop = () => {
-            if(woke.dirtyVDOM)
-            {
-                console.log("I have to render a pass")
+            if (woke.VDOMisDirty()) {
+                // Have to render another pass
                 try {
-                    renderPass()
+                    let dom = woke.render(woke.awake())
+                    let root = document.getElementById(id)
+                    root.innerHTML = ""
+                    root.appendChild(dom)
                 } catch (error) {
                     console.log(error)
                 }
-                woke.dirtyVDOM = false
+                woke.cleanVDOM()
             }
 
-            setTimeout(renderLoop, 1000);
+            setTimeout(renderLoop, 40);
         }
 
+        woke.tarnishVDOM()
         renderLoop()
     }
 }
