@@ -92,7 +92,7 @@ export default woke = {
                 console.log("compare dom with a vdom of a single element")
             }
             else {
-                console.log("render vdom")
+                console.log("no dom to compare with, render vdom")
             }
         }
     },
