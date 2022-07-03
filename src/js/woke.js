@@ -1,4 +1,6 @@
 export default woke = {
+    dirtyVDOM: false,
+
     validHTML(element) {
         return document.createElement(element.toUpperCase()).toString() != "[object HTMLUnknownElement]";
     },
@@ -28,9 +30,12 @@ export default woke = {
 
         // Copy attributes onto the new node
         for (let name in Object(vnode.attributes)) {
-            if (name === 'onClick') {
-                console.log('event: %s -> callback: %o', name, vnode.attributes[name])
-                node.addEventListener('click', vnode.attributes[name])
+            if (name === 'onEvent') {
+                console.log('event: %s -> callback: %o', vnode.attributes[name][0], vnode.attributes[name][1])
+                node.addEventListener(vnode.attributes[name][0], () => {
+                    woke.dirtyVDOM = true
+                    vnode.attributes[name][1]()
+                })
             }
             else {
                 node.setAttribute(name, vnode.attributes[name])
@@ -53,11 +58,32 @@ export default woke = {
             id = "woke"
         }
 
-        let dom = woke.render(woke.awake())
+        woke.dirtyVDOM = true
 
-        let root = document.getElementById(id)
-        root.innerHTML = ""
+        const renderPass = () => {
+            let dom = woke.render(woke.awake())
 
-        root.appendChild(dom)
+            let root = document.getElementById(id)
+            root.innerHTML = ""
+
+            root.appendChild(dom)
+        }
+
+        const renderLoop = () => {
+            if(woke.dirtyVDOM)
+            {
+                console.log("I have to render a pass")
+                try {
+                    renderPass()
+                } catch (error) {
+                    console.log(error)
+                }
+                woke.dirtyVDOM = false
+            }
+
+            setTimeout(renderLoop, 1000);
+        }
+
+        renderLoop()
     }
 }
