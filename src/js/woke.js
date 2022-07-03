@@ -28,7 +28,13 @@ export default woke = {
 
         // Copy attributes onto the new node
         for (let name in Object(vnode.attributes)) {
-            node.setAttribute(name, vnode.attributes[name])
+            if (name === 'onClick') {
+                console.log('event: %s -> callback: %o', name, vnode.attributes[name])
+                node.addEventListener('click', vnode.attributes[name])
+            }
+            else {
+                node.setAttribute(name, vnode.attributes[name])
+            }
         }
 
         // Render child nodes and then append them

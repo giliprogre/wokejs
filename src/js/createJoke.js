@@ -4,6 +4,7 @@ import axios from 'axios'
 function createJoke() {
     
     const getJoke = () => {
+        console.log('executing getJoke()')
         const config = {
             headers: {
                 Accept: 'application/json'
@@ -11,6 +12,7 @@ function createJoke() {
         }
 
         axios.get('https://icanhazdadjoke.com', config).then(res => {
+            console.log('resetting joke\'s inner html')
             document.getElementById('joke').innerHTML = res.data.joke
         })
     }
@@ -20,7 +22,7 @@ function createJoke() {
     return (
         <div>
             <div id="joke" class="joke"></div>
-            <button id="jokeBtn" onClick="getJoke" class="btn">Get a new joke</button>
+            <button id="jokeBtn" onClick={getJoke} class="btn">Get a new joke</button>
         </div>
     )
 }
