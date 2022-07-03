@@ -6,23 +6,15 @@ import Video from './js/Video'
 
 woke.app = () => {
 
-    /*
     return (
         <div>
-            <img id="laughImg" alt="" src={logo}/>
+            <img id="laughImg" alt="" src={logo} />
             <br />
             {Video()}
             <br />
             {Joke()}
             <br />
         </div>
-    )
-    */
-
-    return (
-        <>
-            <p>hola</p>
-        </>
     )
 }
 

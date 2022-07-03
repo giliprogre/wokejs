@@ -18,10 +18,10 @@ function Joke() {
     }
 
     return (
-        <div>
+        <>
             <div id="joke" class="joke">{jokeText}</div>
             <button id="jokeBtn" onEvent={['click', getJoke]} class="btn">Get a new joke</button>
-        </div>
+        </>
     )
 }
 
