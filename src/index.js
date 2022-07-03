@@ -15,7 +15,6 @@ woke.awake = () => {
     return (
         <div>
             <img id="laughImg" alt="" src={logo}/>
-            <h3>You're a fucking white male!</h3>
             <br />
             {Video()}
             <br />
