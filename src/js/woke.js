@@ -27,15 +27,13 @@ export default woke = {
         }
 
         // Copy attributes onto the new node
-        for(let name in Object(vnode.attributes))
-        {
+        for (let name in Object(vnode.attributes)) {
             node.setAttribute(name, vnode.attributes[name])
         }
-        
+
         // Render child nodes and then append them
-        for(let i = 0; i < vnode.children.length; i++)
-        {
-            let child = woke.render(children[i])
+        for (let i = 0; i < vnode.children.length; i++) {
+            let child = woke.render(vnode.children[i])
             node.appendChild(child)
         }
 
