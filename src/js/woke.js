@@ -22,9 +22,39 @@ export default woke = {
         }
     },
 
-    compareNode2VNode(node, vnode) {
-        if(node)
-        return null
+    addChild2Node(node, child) {
+        if (Array.isArray(child)) {
+            for (let i = 0; i < child.length; i++) {
+                node.appendChild(child[i])
+            }
+        }
+        else {
+            node.appendChild(child)
+        }
+    },
+
+    diffNode2VNode(node, vnode) {
+        let nodeName = node.nodeName;
+        let vnodeName = vnode.nodeName;
+        if (nodeName != vnodeName) {
+            return true
+        }
+        return false
+    },
+
+    copyAttributes(node, vnode) {
+        // Copy attributes onto the new node
+        for (let name in Object(vnode.attributes)) {
+            if (name === 'onEvent') {
+                node.addEventListener(vnode.attributes[name][0], () => {
+                    vnode.attributes[name][1]()
+                    woke.tarnishVDOM()
+                })
+            }
+            else {
+                node.setAttribute(name, vnode.attributes[name])
+            }
+        }
     },
 
     VDOMisDirty() {
@@ -39,19 +69,6 @@ export default woke = {
     cleanVDOM() {
         if (woke.__dirtyVDOM > 0) {
             woke.__dirtyVDOM--
-        }
-    },
-
-    addElement2DOM(node, element) {
-        if (Array.isArray(element)) {
-            for (let i = 0; i < element.length; i++) {
-                woke.debug("1 - node.appendChild(%o)", element[i])
-                node.appendChild(element[i])
-            }
-        }
-        else {
-            woke.debug("2 - node.appendChild(%o)", element)
-            node.appendChild(element)
         }
     },
 
@@ -103,24 +120,13 @@ export default woke = {
             return null
         }
 
-        // Copy attributes onto the new node
-        for (let name in Object(vnode.attributes)) {
-            if (name === 'onEvent') {
-                node.addEventListener(vnode.attributes[name][0], () => {
-                    vnode.attributes[name][1]()
-                    woke.tarnishVDOM()
-                })
-            }
-            else {
-                node.setAttribute(name, vnode.attributes[name])
-            }
-        }
+        woke.copyAttributes(node, vnode)
 
         // Render child nodes and then append them
         for (let i = 0; i < vnode.children.length; i++) {
             let child = woke.renderVDOM(vnode.children[i])
             if (child && typeof child !== 'string' && child !== '') {
-                woke.addElement2DOM(node, child)
+                woke.addChild2Node(node, child)
             }
         }
 
@@ -139,6 +145,39 @@ export default woke = {
         else if (dom && Object.prototype.isPrototypeOf.call(NodeList.prototype, dom)) {
             woke.debug("dom is a NodeList, vdom is an element")
             woke.debug("Compare [] to element. NodeList can be empty, and element can be null")
+
+            if (!vdom) {
+                woke.debug("vdom is null")
+                woke.debug("Destroy all subelements of the NodeList")
+                for (let i = dom.length - 1; i >= 0; i--) {
+                    dom[i].remove()
+                }
+                return null
+            }
+
+            if (dom.length > 0) {
+                woke.debug("Destroy all subelements of the NodeList, except fot the 1st one")
+                for (let i = dom.length - 1; i > 0; i--) {
+                    dom[i].remove()
+                }
+
+                if (woke.diffNode2VNode(dom[0], vdom)) {
+                    let new_node = woke.renderVDOM(vdom)
+                    dom[0].parentElement.appendChild(new_node)
+                    dom[0].remove()
+                    return new_node
+                }
+                else {
+                    woke.copyAttributes(dom[0], vdom)
+                    let result = woke.renderDiff(dom[0].childNodes, vdom.children)
+                    woke.debug("woke.renderDiff(dom: %o, vdom: %o) => %o", dom[0].childNodes, vdom.children, result)
+                    return null
+                }
+            }
+            else {
+                let new_node = woke.renderVDOM(vdom)
+                return new_node
+            }
         }
         else if (vdom && Array.isArray(vdom)) {
             woke.debug("dom is an element, vdom is an array")
@@ -158,7 +197,7 @@ export default woke = {
         }
         else {
             woke.print("ERROR - you shouldn't get here")
-            throw("Renderer - Diff error.")
+            throw ("Renderer - Diff error.")
         }
     },
 
@@ -185,7 +224,7 @@ export default woke = {
                     new_dom = woke.renderVDOM(new_vdom)
                     if (new_dom) {
                         root.innerHTML = ""
-                        woke.addElement2DOM(root, new_dom)
+                        woke.addChild2Node(root, new_dom)
                     }
                 } catch (error) {
                     woke.debug(error)
