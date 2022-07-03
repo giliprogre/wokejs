@@ -147,6 +147,7 @@ export default woke = {
         }
 
         woke.tarnishVDOM()
+        renderLoop()
         renderLoop2()
     }
 }
