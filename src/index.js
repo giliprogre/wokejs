@@ -6,12 +6,6 @@ import Video from './js/video'
 
 woke.awake = () => {
 
-    /*
-    const jokeBtn = document.getElementById("jokeBtn")
-    jokeBtn.addEventListener('click', createJoke)
-
-    createJoke()
-    */
     return (
         <div>
             <img id="laughImg" alt="" src={logo}/>
