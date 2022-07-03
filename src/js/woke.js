@@ -3,20 +3,20 @@ export default woke = {
 
     VDOMisDirty() {
         const res = woke.dirtyVDOM > 0
-        console.log("VDOMisDirty() -> %o", res)
+        //console.log("VDOMisDirty() -> %o", res)
         return res
     },
 
     tarnishVDOM() {
         woke.dirtyVDOM++
-        console.log("tarnishVDOM() -> %o", woke.dirtyVDOM)
+        //console.log("tarnishVDOM() -> %o", woke.dirtyVDOM)
     },
 
     cleanVDOM() {
         if (woke.dirtyVDOM > 0) {
             woke.dirtyVDOM--
         }
-        console.log("cleanVDOM() -> %o", woke.dirtyVDOM)
+        //console.log("cleanVDOM() -> %o", woke.dirtyVDOM)
     },
 
     validHTML(element) {
