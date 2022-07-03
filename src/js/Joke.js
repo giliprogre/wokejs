@@ -3,7 +3,7 @@ import axios from 'axios'
 
 let jokeText = ""
 
-function createJoke() {
+function Joke() {
 
     const getJoke = () => {
         const config = {
@@ -25,4 +25,4 @@ function createJoke() {
     )
 }
 
-export default createJoke
+export default Joke

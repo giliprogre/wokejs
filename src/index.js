@@ -1,8 +1,8 @@
 import woke from './js/woke'
-import createJoke from "./js/createJoke"
+import Joke from "./js/Joke"
 import "./styles/main.scss"
 import logo from './assets/logo.png'
-import Video from './js/video'
+import Video from './js/Video'
 
 woke.awake = () => {
 
@@ -12,7 +12,7 @@ woke.awake = () => {
             <br />
             {Video()}
             <br />
-            {createJoke()}
+            {Joke()}
             <br />
         </div>
     )
