@@ -18,4 +18,4 @@ woke.app = () => {
     )
 }
 
-woke.awake("app")
+woke.awake("root")

@@ -42,6 +42,25 @@ let woke = {
         return false
     },
 
+    diffAttributes(node, vnode) {
+        // Copy attributes onto the new node
+        for (let name in Object(vnode.attributes)) {
+            if (name === 'onEvent') {
+                node.addEventListener(vnode.attributes[name][0], () => {
+                    vnode.attributes[name][1]()
+                    woke.tarnishVDOM()
+                })
+            }
+            else {
+                let old_attr = node.getAttribute(name)
+                let new_attr = vnode.attributes[name]
+                if (old_attr != new_attr) {
+                    node.setAttribute(name, new_attr)
+                }
+            }
+        }
+    },
+
     copyAttributes(node, vnode) {
         // Copy attributes onto the new node
         for (let name in Object(vnode.attributes)) {
@@ -120,7 +139,7 @@ let woke = {
             return null
         }
 
-        woke.copyAttributes(node, vnode)
+        woke.diffAttributes(node, vnode)
 
         // Render child nodes and then append them
         for (let i = 0; i < vnode.children.length; i++) {
@@ -168,7 +187,7 @@ let woke = {
                     return new_node
                 }
                 else {
-                    woke.copyAttributes(dom[0], vdom)
+                    woke.diffAttributes(dom[0], vdom)
                     let result = woke.renderDiff(dom[0].childNodes, vdom.children)
                     woke.debug("woke.renderDiff(dom: %o, vdom: %o) => %o", dom[0].childNodes, vdom.children, result)
                     return null
@@ -206,7 +225,7 @@ let woke = {
     awake(_id) {
         let id = _id
         if (!id) {
-            woke.id = "app"
+            woke.id = "root"
         }
 
         let new_vdom = null
