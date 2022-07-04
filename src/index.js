@@ -1,21 +1,29 @@
 import woke from './js/woke'
-import Joke from "./js/Joke"
+import Hello from './js/Hello'
 import "./styles/main.scss"
-import logo from './assets/logo.png'
-import Video from './js/Video'
+//import Joke from "./js/Joke"
+//import logo from './assets/logo.png'
+//import Video from './js/Video'
 
 woke.app = () => {
-
+    /*
+        return (
+            <div>
+                <img id="laughImg" alt="" src={logo} />
+                <br />
+                {Video()}
+                <br />
+                {Joke()}
+                <br />
+            </div>
+        )
+    */
     return (
         <div>
-            <img id="laughImg" alt="" src={logo} />
-            <br />
-            {Video()}
-            <br />
-            {Joke()}
-            <br />
+            <Hello />
         </div>
     )
 }
 
 woke.awake("root")
+woke.tarnishVDOM()

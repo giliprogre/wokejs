@@ -152,10 +152,31 @@ let woke = {
         return node;
     },
 
-    renderDiff(dom, vdom) {
-        woke.debug("renderDiff(dom: %o, vdom: %o)", dom, vdom)
+    renderDiff(dom, _vdom) {
+        woke.debug("renderDiff(dom: %o, vdom: %o)", dom, _vdom)
         woke.debug("NODE: %o", dom)
-        woke.debug("VNODE: %o", vdom)
+        woke.debug("VNODE: %o", _vdom)
+
+        let vdom
+        if (typeof _vdom.nodeName === 'function') {
+            let inner_vdom
+            woke.debug("vdom.nodeName: %o = %o", typeof _vdom.nodeName, _vdom.nodeName)
+            let component_pronouns = _vdom.nodeName.pronouns
+            woke.debug("vdom.nodeName.pronouns => %o", component_pronouns)
+            inner_vdom = _vdom.nodeName.call()
+            if (typeof inner_vdom.nodeName === 'function' && inner_vdom.nodeName.name === 'Fragment') {
+                woke.debug("Analizing Fragment")
+                inner_vdom = inner_vdom.children
+            }
+            woke.debug("inner_vdom: %o", inner_vdom)
+            vdom = inner_vdom
+        }
+        else {
+            vdom = _vdom
+        }
+
+        woke.debug("renderDiff final VDOM to render: %o", vdom)
+
 
         if ((dom && Object.prototype.isPrototypeOf.call(NodeList.prototype, dom)) && (vdom && Array.isArray(vdom))) {
             woke.debug("Both dom & vdom are lists, dom is a NodeList & vdom is an array")
@@ -181,8 +202,17 @@ let woke = {
                 }
 
                 if (woke.diffNode2VNode(dom[0], vdom)) {
-                    let new_node = woke.renderVDOM(vdom)
-                    dom[0].parentElement.appendChild(new_node)
+                    woke.debug("dom[0]: %o, vdom: %o", dom[0], vdom)
+                    new_node = woke.renderVDOM(vdom)
+                    woke.debug("new_node: %o", new_node)
+                    if (Array.isArray(new_node)) {
+                        for (let n = 0; n < new_node.length; n++) {
+                            dom[0].parentElement.appendChild(new_node[n])
+                        }
+                    }
+                    else {
+                        dom[0].parentElement.appendChild(new_node)
+                    }
                     dom[0].remove()
                     return new_node
                 }
@@ -220,6 +250,116 @@ let woke = {
         }
     },
 
+    isHtmlVNode(vnode) {
+        return (vnode && typeof vnode.nodeName === 'string')
+    },
+
+    isComponentVNode(vnode) {
+        return (vnode && typeof vnode.nodeName === 'function')
+    },
+
+    isTextVNode(vnode) {
+        return (vnode && typeof vnode === 'string')
+    },
+
+    isFragmentVNode(vnode) {
+        return (vnode && typeof vnode.nodeName === 'function' && vnode.nodeName.name === 'Fragment')
+    },
+
+    isDirtyComponentVNode(vnode) {
+        return (vnode && typeof vnode.nodeName === 'function' && vnode.dirty)
+    },
+
+    vnodeHasDirtyProp(vnode) {
+        return vnode.hasOwnProperty('dirty')
+    },
+
+    isDirty(vnode) {
+        if (vnode && woke.vnodeHasDirtyProp(vnode)) {
+            return vnode.dirty
+        }
+        else {
+            return true
+        }
+
+    },
+
+    parseVTree(vdom) {
+        if (!vdom) {
+            woke.debug("null vnode, probably a leaf")
+            return null
+        }
+
+        let vnode = vdom
+
+        if (woke.isHtmlVNode(vnode)) {
+            woke.debug("vnode is a normal html element")
+            woke.debug("subtree is in .children[]")
+
+            let children = []
+            for(let i = 0; i < vnode.children.length; i++)
+            {
+                let child = woke.parseVTree(vnode.children[i])
+                children.push(child)
+            }
+            vnode.vdom = children
+        }
+        else if (Array.isArray(vnode)) {
+            woke.debug("vnode is an Array")
+            let children = []
+            for(let i = 0; i < vnode.length; i++)
+            {
+                let child = woke.parseVTree(vnode[i])
+                children.push(child)
+            }
+            vnode.vdom = children
+        }
+        else if (woke.isComponentVNode(vnode)) {
+            woke.debug("vnode is a Component")
+
+            if (!woke.vnodeHasDirtyProp(vnode)) {
+                woke.debug("First render of this vnode")
+                vnode.dirty = true
+            }
+
+            if (woke.isFragmentVNode(vnode)) {
+                woke.debug("vnode is a Fragment Component")
+                woke.debug("Analizing Fragment")
+
+                if (vnode.dirty) {
+                    let subvdom = vnode.children
+                    vnode.vdom = woke.parseVTree(subvdom)
+                    vnode.dirty = false
+                }
+            }
+            else {
+                woke.debug("vnode is a Component Function")
+
+                if (vnode.dirty) {
+                    let subvdom = vnode.nodeName.call()
+                    vnode.vdom = woke.parseVTree(subvdom)
+                    vnode.dirty = false
+                }
+            }
+        }
+        else if (woke.isTextVNode(vnode)) {
+            woke.debug("vnode is an Array")
+            return vnode
+        }
+        else {
+            woke.debug("vnode of unexpected kind: %o", vnode)
+            return null
+        }
+
+        if (!vnode) {
+            woke.debug('The resulting vnode is null/undefined')
+            return null
+        }
+        else {
+            return vnode
+        }
+    },
+
     app: () => { },
 
     awake(_id) {
@@ -228,40 +368,33 @@ let woke = {
             woke.id = "root"
         }
 
-        let new_vdom = null
-        let old_vdom = null
         let root = null
         let new_dom = null
+        let old_vdom = null
+        let new_vdom = 42
 
         const renderLoop = () => {
             if (woke.VDOMisDirty()) {
                 // Have to render another pass
                 try {
-                    old_vdom = new_vdom
-                    new_vdom = woke.app()
-
-                    root = document.getElementById(id)
-                    new_dom = woke.renderVDOM(new_vdom)
-                    if (new_dom) {
-                        root.innerHTML = ""
-                        woke.addChild2Node(root, new_dom)
-                    }
-                } catch (error) {
-                    woke.debug(error)
-                }
-                woke.cleanVDOM()
-            }
-
-            setTimeout(renderLoop, 40);
-        }
-
-        const renderLoop2 = () => {
-            if (woke.VDOMisDirty()) {
-                // Have to render another pass
-                try {
                     let vdom = woke.app()
                     let root = document.getElementById(id)
-                    woke.renderDiff(root.childNodes, vdom)
+
+                    woke.debug("root: %o", root)
+                    woke.debug("new_dom: %o", new_dom)
+                    woke.debug("old_vdom: %o", old_vdom)
+                    woke.debug("new_vdom: %o", new_vdom)
+
+                    old_vdom = new_vdom
+
+                    new_vdom = woke.parseVTree(vdom)
+                    new_vdom.creationTime = new Date().getTime()
+
+                    woke.debug("root: %o", root)
+                    woke.debug("new_dom: %o", new_dom)
+                    woke.debug("old_vdom: %o", old_vdom)
+                    woke.debug("new_vdom: %o", new_vdom)
+                    //woke.renderDiff(root.childNodes, vdom)
                 } catch (error) {
                     woke.debug(error)
                 }
@@ -272,8 +405,7 @@ let woke = {
         }
 
         woke.tarnishVDOM()
-        //renderLoop()
-        renderLoop2()
+        renderLoop()
     }
 }
 
