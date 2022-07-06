@@ -5,9 +5,6 @@ let woke = {
     __print: true,
 
     State: class {
-        #pronouns = "he/him/his"
-        get pronouns() { return this.#pronouns }
-
         #dirty = false
         get dirty() { console.log('getting dirty'); return this.#dirty }
 
