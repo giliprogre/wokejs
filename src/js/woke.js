@@ -328,35 +328,49 @@ let woke = {
 
     },
 
+    getVNodeType(vnode) {
+        if(woke.isHtmlVNode(vnode))
+        {
+            return 'Html'
+        }
+        else if(woke.isTextVNode(vnode))
+        {
+            return 'Text'
+        }
+        else if(woke.isComponentVNode(vnode))
+        {
+            return 'Component'
+        }
+        else if(woke.isFragmentVNode(vnode))
+        {
+            return 'Fragment'
+        }
+        else {
+            return null
+        }
+    },
+
     compareVNodes(oldVNnode, newVNode) {
         if (!oldVNnode) {
+            woke.debug("compareVNodes() - oldVNode: %o. Have to render newVNode: %o", oldVNnode, newVNode)
             return false
         }
         else if (!newVNode) {
+            woke.debug("compareVNodes() - newVNode: %o. Have to clear oldVNode: %o", newVNode, oldVNnode)
+            return false
+        }
+
+        if (woke.getVNodeType(oldVNnode) !== woke.getVNodeType(newVNode)) { // VNodes of different kind
+            woke.debug("compareVNodes() - VNodes of different kind; oldVNode's: %s, newVNode's: %s", woke.getVNodeType(oldVNnode), woke.getVNodeType(newVNode))
             return false
         }
 
         if (oldVNnode.children ? !newVNode.children : newVNode.children) { // XOR vnode.children
+            woke.debug("compareVNodes() - One of the vnodes doesn't have a children attribute, while the other does. oldVNode: %o, newVNode: %o", oldVNnode, newVNode)
             return false
         }
 
         if (oldVNnode.children.length !== newVNode.children.length) {
-            return false
-        }
-
-        if (woke.isTextVNode(oldVNnode) ? !woke.isTextVNode(newVNode) : woke.isTextVNode(newVNode)) { // XOR TextVNode
-            return false
-        }
-
-        if (woke.isHtmlVNode(oldVNnode) ? !woke.isHtmlVNode(newVNode) : woke.isHtmlVNode(newVNode)) { // XOR HtmlVNode
-            return false
-        }
-
-        if (woke.isComponentVNode(oldVNnode) ? !woke.isComponentVNode(newVNode) : woke.isComponentVNode(newVNode)) { // XOR ComponentVNode
-            return false
-        }
-
-        if (woke.isFragmentVNode(oldVNnode) ? !woke.isFragmentVNode(newVNode) : woke.isFragmentVNode(newVNode)) { // XOR FragmentVNode
             return false
         }
 

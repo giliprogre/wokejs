@@ -26,4 +26,4 @@ woke.app = () => {
 }
 
 woke.awake("root")
-woke.tarnishVDOM()
+//woke.tarnishVDOM()
