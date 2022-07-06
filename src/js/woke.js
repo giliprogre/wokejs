@@ -328,6 +328,41 @@ let woke = {
 
     },
 
+    compareVNodes(oldVNnode, newVNode) {
+        if (!oldVNnode) {
+            return false
+        }
+        else if (!newVNode) {
+            return false
+        }
+
+        if (oldVNnode.children ? !newVNode.children : newVNode.children) { // XOR vnode.children
+            return false
+        }
+
+        if (oldVNnode.children.length !== newVNode.children.length) {
+            return false
+        }
+
+        if (woke.isTextVNode(oldVNnode) ? !woke.isTextVNode(newVNode) : woke.isTextVNode(newVNode)) { // XOR TextVNode
+            return false
+        }
+
+        if (woke.isHtmlVNode(oldVNnode) ? !woke.isHtmlVNode(newVNode) : woke.isHtmlVNode(newVNode)) { // XOR HtmlVNode
+            return false
+        }
+
+        if (woke.isComponentVNode(oldVNnode) ? !woke.isComponentVNode(newVNode) : woke.isComponentVNode(newVNode)) { // XOR ComponentVNode
+            return false
+        }
+
+        if (woke.isFragmentVNode(oldVNnode) ? !woke.isFragmentVNode(newVNode) : woke.isFragmentVNode(newVNode)) { // XOR FragmentVNode
+            return false
+        }
+
+        return true
+    },
+
     createNewVTreeFromVNode(_vnode) {
         if (!_vnode) {
             woke.debug("null vnode, probably a leaf")
@@ -440,6 +475,8 @@ let woke = {
 
                     new_vdom = woke.createNewVTreeFromVNode(vdom)
                     new_vdom.creationTime = new Date().getTime()
+
+                    woke.debug("Are the old and new vdoms equal? %s", woke.compareVNodes(old_vdom, new_vdom) ? "Yes" : "No")
 
                     woke.info("-- Objects after rendering --")
                     woke.info("root: %o", root)
