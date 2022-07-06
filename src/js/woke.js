@@ -326,7 +326,7 @@ let woke = {
 
     },
 
-    parseVTree(vdom) {
+    createNewVTreeFromVNode(vdom) {
         if (!vdom) {
             woke.debug("null vnode, probably a leaf")
             return null
@@ -340,7 +340,7 @@ let woke = {
 
             let children = []
             for (let i = 0; i < vnode.children.length; i++) {
-                let child = woke.parseVTree(vnode.children[i])
+                let child = woke.createNewVTreeFromVNode(vnode.children[i])
                 children.push(child)
             }
             vnode.vdom = children
@@ -349,7 +349,7 @@ let woke = {
             woke.debug("vnode is an Array")
             let children = []
             for (let i = 0; i < vnode.length; i++) {
-                let child = woke.parseVTree(vnode[i])
+                let child = woke.createNewVTreeFromVNode(vnode[i])
                 children.push(child)
             }
             vnode.vdom = children
@@ -373,7 +373,7 @@ let woke = {
 
                 if (vnode.dirty) {
                     let subvdom = vnode.children
-                    vnode.vdom = woke.parseVTree(subvdom)
+                    vnode.vdom = woke.createNewVTreeFromVNode(subvdom)
                     vnode.dirty = false
                 }
             }
@@ -384,7 +384,7 @@ let woke = {
                     woke.debug("vnode is dirty")
                     woke.debug("Have to recreate it's vdom")
                     let subvdom = vnode.nodeName.call()
-                    vnode.vdom = woke.parseVTree(subvdom)
+                    vnode.vdom = woke.createNewVTreeFromVNode(subvdom)
                     vnode.dirty = false
                 }
             }
@@ -436,7 +436,7 @@ let woke = {
 
                     old_vdom = new_vdom
 
-                    new_vdom = woke.parseVTree(vdom)
+                    new_vdom = woke.createNewVTreeFromVNode(vdom)
                     new_vdom.creationTime = new Date().getTime()
 
                     woke.info("-- Objects after rendering --")
