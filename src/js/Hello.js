@@ -4,12 +4,16 @@ function Hello() {
 
     return (
         <div>
-            <p>hello</p>
-            <p>world</p>
+            <p>{this.test}</p>
+            <p>2nd paragraph</p>
         </div>
     )
 }
 
-Hello.pronouns = "he/him/his"
+Hello.defaultState = class extends woke.State {
+    #test = 'Hello, World!'
+    get test() { return this.#test }
+    set test(_test) { this.tarnishComponent(); this.#test = _test }
+}
 
 export default Hello

@@ -4,6 +4,27 @@ let woke = {
     __info: true,
     __print: true,
 
+    State: class {
+        #pronouns = "he/him/his"
+        get pronouns() { return this.#pronouns }
+
+        #dirty = false
+        get dirty() { console.log('getting dirty'); return this.#dirty }
+
+        isDirty() {
+            return this.#dirty
+        }
+
+        tarnishComponent() {
+            this.#dirty = true
+            woke.tarnishVDOM()
+        }
+
+        cleanComponent() {
+            this.#dirty = false
+        }
+    },
+
     debug(...val) {
         if (woke.__debug) {
             console.log(...val)
@@ -254,6 +275,22 @@ let woke = {
         return (vnode && typeof vnode.nodeName === 'string')
     },
 
+    bindComponentState(vnode, state) {
+        if (!state) {
+            woke.debug("No additional state has been provided")
+            woke.debug("Binding Function Component to default state")
+            vnode.nodeName.state = new vnode.nodeName.defaultState
+        }
+        else {
+            woke.debug("An additional state has been provided")
+            woke.debug("Binding Function Component to the provided state")
+            vnode.nodeName.state = state
+        }
+        woke.debug("The state that the function is going to be bound to: %o", vnode.nodeName.state)
+        vnode.nodeName = vnode.nodeName.bind(vnode.nodeName.state)
+        return vnode
+    },
+
     isComponentVNode(vnode) {
         return (vnode && typeof vnode.nodeName === 'function')
     },
@@ -297,8 +334,7 @@ let woke = {
             woke.debug("subtree is in .children[]")
 
             let children = []
-            for(let i = 0; i < vnode.children.length; i++)
-            {
+            for (let i = 0; i < vnode.children.length; i++) {
                 let child = woke.parseVTree(vnode.children[i])
                 children.push(child)
             }
@@ -307,8 +343,7 @@ let woke = {
         else if (Array.isArray(vnode)) {
             woke.debug("vnode is an Array")
             let children = []
-            for(let i = 0; i < vnode.length; i++)
-            {
+            for (let i = 0; i < vnode.length; i++) {
                 let child = woke.parseVTree(vnode[i])
                 children.push(child)
             }
@@ -318,8 +353,13 @@ let woke = {
             woke.debug("vnode is a Component")
 
             if (!woke.vnodeHasDirtyProp(vnode)) {
-                woke.debug("First render of this vnode")
+                woke.debug("First render of this Component")
+                woke.debug("Set state of this Component for the 1st time")
                 vnode.dirty = true
+                vnode = woke.bindComponentState(vnode)
+            }
+            else {
+                woke.debug("This Component has previous state")
             }
 
             if (woke.isFragmentVNode(vnode)) {
@@ -336,6 +376,8 @@ let woke = {
                 woke.debug("vnode is a Component Function")
 
                 if (vnode.dirty) {
+                    woke.debug("vnode is dirty")
+                    woke.debug("Have to recreate it's vdom")
                     let subvdom = vnode.nodeName.call()
                     vnode.vdom = woke.parseVTree(subvdom)
                     vnode.dirty = false
