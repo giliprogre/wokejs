@@ -273,18 +273,26 @@ let woke = {
     },
 
     bindComponentState(vnode, state) {
+        let _state
         if (!state) {
             woke.debug("No additional state has been provided")
             woke.debug("Binding Function Component to default state")
-            vnode.nodeName.state = new vnode.nodeName.defaultState
+            _state = new vnode.nodeName.defaultState
         }
         else {
             woke.debug("An additional state has been provided")
             woke.debug("Binding Function Component to the provided state")
-            vnode.nodeName.state = state
+            _state = state
         }
-        woke.debug("The state that the function is going to be bound to: %o", vnode.nodeName.state)
+        woke.debug("Setting state")
+        vnode.nodeName.state = _state
+        woke.debug("The state that the function is going to be bound to: %o", _state)
+        let f = vnode.nodeName
+        woke.debug("The previous function is: %o", f)
         vnode.nodeName = vnode.nodeName.bind(vnode.nodeName.state)
+        woke.debug("Saving state into new function")
+        vnode.nodeName.state = _state
+        woke.debug("The bound function is: %o", vnode.nodeName)
         return vnode
     },
 
@@ -352,8 +360,8 @@ let woke = {
             if (!woke.vnodeHasDirtyProp(vnode)) {
                 woke.debug("First render of this Component")
                 woke.debug("Set state of this Component for the 1st time")
-                vnode.dirty = true
                 vnode = woke.bindComponentState(vnode)
+                vnode.dirty = true
             }
             else {
                 woke.debug("This Component has previous state")
@@ -414,29 +422,33 @@ let woke = {
 
         const renderLoop = () => {
             if (woke.VDOMisDirty()) {
+                woke.info("--- BEGIN RENDER PASS ---")
                 // Have to render another pass
                 try {
                     let vdom = woke.app()
                     let root = document.getElementById(id)
 
-                    woke.debug("root: %o", root)
-                    woke.debug("new_dom: %o", new_dom)
-                    woke.debug("old_vdom: %o", old_vdom)
-                    woke.debug("new_vdom: %o", new_vdom)
+                    woke.info("-- Objects before rendering --")
+                    woke.info("root: %o", root)
+                    woke.info("new_dom: %o", new_dom)
+                    woke.info("old_vdom: %o", old_vdom)
+                    woke.info("new_vdom: %o", new_vdom)
 
                     old_vdom = new_vdom
 
                     new_vdom = woke.parseVTree(vdom)
                     new_vdom.creationTime = new Date().getTime()
 
-                    woke.debug("root: %o", root)
-                    woke.debug("new_dom: %o", new_dom)
-                    woke.debug("old_vdom: %o", old_vdom)
-                    woke.debug("new_vdom: %o", new_vdom)
+                    woke.info("-- Objects after rendering --")
+                    woke.info("root: %o", root)
+                    woke.info("new_dom: %o", new_dom)
+                    woke.info("old_vdom: %o", old_vdom)
+                    woke.info("new_vdom: %o", new_vdom)
                     //woke.renderDiff(root.childNodes, vdom)
                 } catch (error) {
                     woke.debug(error)
                 }
+                woke.info("--- END RENDER PASS ---")
                 woke.cleanVDOM()
             }
 
