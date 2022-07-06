@@ -129,6 +129,7 @@ let woke = {
         return value
     },
 
+    /*
     renderVDOM(vnode) {
         if (!vnode) {
             return null
@@ -169,7 +170,7 @@ let woke = {
 
         return node;
     },
-
+    
     renderDiff(dom, _vdom) {
         woke.debug("renderDiff(dom: %o, vdom: %o)", dom, _vdom)
         woke.debug("NODE: %o", dom)
@@ -267,6 +268,7 @@ let woke = {
             throw ("Renderer - Diff error.")
         }
     },
+    */
 
     isHtmlVNode(vnode) {
         return (vnode && typeof vnode.nodeName === 'string')
@@ -326,13 +328,13 @@ let woke = {
 
     },
 
-    createNewVTreeFromVNode(vdom) {
-        if (!vdom) {
+    createNewVTreeFromVNode(_vnode) {
+        if (!_vnode) {
             woke.debug("null vnode, probably a leaf")
             return null
         }
 
-        let vnode = vdom
+        let vnode = _vnode
 
         if (woke.isHtmlVNode(vnode)) {
             woke.debug("vnode is a normal html element")
