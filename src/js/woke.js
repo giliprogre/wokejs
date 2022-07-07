@@ -509,7 +509,7 @@ let woke = {
         }
         else {
             woke.debug("parseVTree() - vnode of unexpected kind: %o", vnode)
-            return null
+            return vnode
         }
 
         return vnode

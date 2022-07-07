@@ -2,14 +2,14 @@ import woke from './woke'
 
 function Hello() {
 
-    const countTo10 = () => {
+    const countTo2 = () => {
         woke.debug("Counter1: %o", this.counter)
-        if (this.counter < 10) {
+        if (this.counter < 2) {
             this.increment()
         }
     }
 
-    countTo10()
+    countTo2()
 
     return (
         <>
