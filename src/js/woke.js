@@ -495,14 +495,6 @@ let woke = {
             }
             else {
                 woke.debug("parseVTree() - Component - vnode is a Component")
-                //if (!woke.vnodeHasDirtyProp(vnode)) {
-                //    woke.debug("parseVTree() - Component - First render")
-                //    woke.debug("parseVTree() - Component - Set state for the 1st time")
-                //    vnode.dirty = true
-                //}
-                //else {
-                //    woke.debug("parseVTree() - Component - Has previous state")
-                //}
 
                 vnode = woke.bindComponentState(vnode)
 
