@@ -6,7 +6,6 @@ function Hello() {
         woke.debug("Counter1: %o", this.counter)
         if (this.counter < 10) {
             this.increment()
-            setTimeout(countTo10, 1000)
         }
     }
 
@@ -16,6 +15,7 @@ function Hello() {
         <>
             <p>{this.test}</p>
             <p>2nd paragraph</p>
+            <p>{this.counter}</p>
             <button onClick={this.tarnishComponent}>Click</button>
         </>
     )

@@ -278,8 +278,16 @@ let woke = {
         let _state
         if (!state) {
             woke.debug("bindComponentState() - No additional state has been provided")
-            woke.debug("bindComponentState() - Binding Function Component to default state")
-            _state = new vnode.nodeName.defaultState
+            if (vnode.nodeName.state) {
+                woke.debug("bindComponentState() - A previous state exists")
+                woke.debug("bindComponentState() - Preserving previous state")
+                _state = vnode.nodeName.state
+            }
+            else {
+                woke.debug("bindComponentState() - No previous state ")
+                woke.debug("bindComponentState() - Binding Function Component to default state")
+                _state = new vnode.nodeName.defaultState
+            }
         }
         else {
             woke.debug("bindComponentState() - An additional state has been provided")
@@ -310,17 +318,43 @@ let woke = {
         return (vnode && typeof vnode.nodeName === 'function' && vnode.nodeName.name === 'Fragment')
     },
 
-    isDirtyComponentVNode(vnode) {
-        return (vnode && typeof vnode.nodeName === 'function' && vnode.dirty)
+    isDirtyComponent(vnode) {
+        if(woke.isComponentVNode(vnode)
+        && vnode.state
+        && vnode.state.dirty
+        ) {
+            return vnode.state.dirty
+        }
+        else {
+            return true
+        }
+    },
+
+    cleanComponent(vnode) {
+        if(woke.isComponentVNode(vnode)
+        && vnode.state
+        && vnode.state.dirty
+        ) {
+            vnode.state.dirty = false
+        }
+    },
+
+    vnodeHasStateProp(vnode) {
+        return vnode.hasOwnProperty('state')
     },
 
     vnodeHasDirtyProp(vnode) {
-        return vnode.hasOwnProperty('dirty')
+        if (woke.vnodeHasStateProp(vnode)) {
+            return vnode.state.hasOwnProperty('dirty')
+        }
+        else {
+            return false
+        }
     },
 
     isDirty(vnode) {
         if (vnode && woke.vnodeHasDirtyProp(vnode)) {
-            return vnode.dirty
+            return vnode.state.dirty
         }
         else {
             return true
@@ -385,7 +419,7 @@ let woke = {
         let vnode = _vnode
 
         if (woke.isHtmlVNode(vnode)) {
-            woke.debug("parseVTree() - HtmlNode - vnode is a normal html element")
+            woke.debug("parseVTree() - HtmlNode - vnode is a html element")
             woke.debug("parseVTree() - HtmlNode - subtree is in .children[]")
 
             if (!vnode.vdom) {
@@ -404,9 +438,18 @@ let woke = {
                 woke.debug("parseVTree() - HtmlNode - Storing #%i children in .vdom", i + 1)
                 vnode.vdom = children
             }
+            else if (false) {
+                woke.debug("parseVTree() - HtmlNode - # of children changed.")
+                woke.debug("parseVTree() - HtmlNode - TODO: Rerender different # of children.")
+            }
             else {
                 woke.debug("parseVTree() - HtmlNode - vnode.vdom already exists.")
-                woke.debug("parseVTree() - HtmlNode - Has been rendered previously, skipping...")
+                woke.debug("parseVTree() - HtmlNode - # of children remains the same, parsing vdom")
+                for (let i = 0; i < vnode.vdom.length; i++) {
+                    woke.debug("parseVTree() - HtmlNode - Parsing .vdom[%i].", i)
+                    vnode.vdom[i] = woke.parseVTree(vnode.vdom[i])
+                    woke.debug("parseVTree() - HtmlNode - Done parsing .vdom[%i].", i)
+                }
             }
         }
         else if (woke.isTextVNode(vnode)) {
@@ -443,8 +486,7 @@ let woke = {
                     let subvdom = vnode.children
                     vnode.vdom = woke.parseVTree(subvdom)
                 }
-                else if(vnode.children && vnode.vdom.length !== vnode.children.length)
-                {
+                else if (vnode.children && vnode.vdom.length !== vnode.children.length) {
                     woke.debug("parseVTree() - Fragment - The size of .children[] changed")
                     woke.debug("parseVTree() - Fragment - Parsing children")
                     let subvdom = vnode.children
@@ -453,23 +495,23 @@ let woke = {
             }
             else {
                 woke.debug("parseVTree() - Component - vnode is a Component")
-                if (!woke.vnodeHasDirtyProp(vnode)) {
-                    woke.debug("parseVTree() - Component - First render")
-                    woke.debug("parseVTree() - Component - Set state for the 1st time")
-                    vnode.dirty = true
-                }
-                else {
-                    woke.debug("parseVTree() - Component - Has previous state")
-                }
+                //if (!woke.vnodeHasDirtyProp(vnode)) {
+                //    woke.debug("parseVTree() - Component - First render")
+                //    woke.debug("parseVTree() - Component - Set state for the 1st time")
+                //    vnode.dirty = true
+                //}
+                //else {
+                //    woke.debug("parseVTree() - Component - Has previous state")
+                //}
 
                 vnode = woke.bindComponentState(vnode)
 
-                if (vnode.dirty) {
+                if (woke.isDirtyComponent(vnode)) {
                     woke.debug("parseVTree() - Component - vnode is dirty")
                     woke.debug("parseVTree() - Component - Have to recreate it's vdom")
                     let subvdom = vnode.nodeName.call()
                     vnode.vdom = woke.parseVTree(subvdom)
-                    vnode.dirty = false
+                    woke.cleanComponent(vnode)
                 }
             }
         }
