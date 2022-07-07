@@ -2,22 +2,22 @@ import woke from './woke'
 
 function Hello() {
 
-    const countTo1 = () => {
+    const countTo10 = () => {
         woke.debug("Counter1: %o", this.counter)
-        if (this.counter < 1) {
+        if (this.counter < 10) {
             this.increment()
-            //setTimeout(countTo10, 1000)
+            setTimeout(countTo10, 1000)
         }
     }
 
-    //countTo1()
+    countTo10()
 
     return (
-        <div>
+        <>
             <p>{this.test}</p>
             <p>2nd paragraph</p>
             <button onClick={this.tarnishComponent}>Click</button>
-        </div>
+        </>
     )
 }
 
