@@ -409,106 +409,106 @@ let woke = {
     },
     */
 
-    parseVTree(_vnode) {
-        woke.debug("parseVTree(vnode: %o)", _vnode)
+    updateVDom(_vnode) {
+        woke.debug("updateVDom(vnode: %o)", _vnode)
         if (!_vnode) {
-            woke.debug("parseVTree() - null vnode, probably a leaf")
+            woke.debug("updateVDom() - null vnode, probably a leaf")
             return null
         }
 
         let vnode = _vnode
 
         if (woke.isHtmlVNode(vnode)) {
-            woke.debug("parseVTree() - HtmlNode - vnode is a html element")
-            woke.debug("parseVTree() - HtmlNode - subtree is in .children[]")
+            woke.debug("updateVDom() - HtmlNode - vnode is a html element")
+            woke.debug("updateVDom() - HtmlNode - subtree is in .children[]")
 
             if (!vnode.vdom) {
-                woke.debug("parseVTree() - HtmlNode - vnode.vdom doesn't exist.")
-                woke.debug("parseVTree() - HtmlNode - First render, populating .vdom from .children")
+                woke.debug("updateVDom() - HtmlNode - vnode.vdom doesn't exist.")
+                woke.debug("updateVDom() - HtmlNode - First render, populating .vdom from .children")
 
                 let children = []
                 let i
                 for (i = 0; i < vnode.children.length; i++) {
-                    woke.debug("parseVTree() - HtmlNode - Parsing child[%i].", i)
-                    let child = woke.parseVTree(vnode.children[i])
-                    woke.debug("parseVTree() - HtmlNode - Done parsing child[%i].", i)
+                    woke.debug("updateVDom() - HtmlNode - Parsing child[%i].", i)
+                    let child = woke.updateVDom(vnode.children[i])
+                    woke.debug("updateVDom() - HtmlNode - Done parsing child[%i].", i)
                     children.push(child)
                 }
 
-                woke.debug("parseVTree() - HtmlNode - Storing #%i children in .vdom", i + 1)
+                woke.debug("updateVDom() - HtmlNode - Storing #%i children in .vdom", i + 1)
                 vnode.vdom = children
             }
             else if (false) {
-                woke.debug("parseVTree() - HtmlNode - # of children changed.")
-                woke.debug("parseVTree() - HtmlNode - TODO: Rerender different # of children.")
+                woke.debug("updateVDom() - HtmlNode - # of children changed.")
+                woke.debug("updateVDom() - HtmlNode - TODO: Rerender different # of children.")
             }
             else {
-                woke.debug("parseVTree() - HtmlNode - vnode.vdom already exists.")
-                woke.debug("parseVTree() - HtmlNode - # of children remains the same, parsing vdom")
+                woke.debug("updateVDom() - HtmlNode - vnode.vdom already exists.")
+                woke.debug("updateVDom() - HtmlNode - # of children remains the same, parsing vdom")
                 for (let i = 0; i < vnode.vdom.length; i++) {
-                    woke.debug("parseVTree() - HtmlNode - Parsing .vdom[%i].", i)
-                    vnode.vdom[i] = woke.parseVTree(vnode.vdom[i])
-                    woke.debug("parseVTree() - HtmlNode - Done parsing .vdom[%i].", i)
+                    woke.debug("updateVDom() - HtmlNode - Parsing .vdom[%i].", i)
+                    vnode.vdom[i] = woke.updateVDom(vnode.vdom[i])
+                    woke.debug("updateVDom() - HtmlNode - Done parsing .vdom[%i].", i)
                 }
             }
         }
         else if (woke.isTextVNode(vnode)) {
-            woke.debug("parseVTree() - TextNode - vnode is a TextNode")
+            woke.debug("updateVDom() - TextNode - vnode is a TextNode")
         }
         else if (Array.isArray(vnode)) {
-            woke.debug("parseVTree() - Array - vnode is an Array")
+            woke.debug("updateVDom() - Array - vnode is an Array")
             if (!vnode.vdom) {
-                woke.debug("parseVTree() - Array - vnode.vdom doesn't exist.")
-                woke.debug("parseVTree() - Array - First render, populating .vdom from .children")
+                woke.debug("updateVDom() - Array - vnode.vdom doesn't exist.")
+                woke.debug("updateVDom() - Array - First render, populating .vdom from .children")
 
                 let children = []
                 let i
                 for (i = 0; i < vnode.length; i++) {
-                    woke.debug("parseVTree() - Array - Parsing child[%i].", i)
-                    let child = woke.parseVTree(vnode[i])
-                    woke.debug("parseVTree() - Array - Done parsing child[%i].", i)
+                    woke.debug("updateVDom() - Array - Parsing child[%i].", i)
+                    let child = woke.updateVDom(vnode[i])
+                    woke.debug("updateVDom() - Array - Done parsing child[%i].", i)
                     children.push(child)
                 }
 
-                woke.debug("parseVTree() - Array - Storing #%i children in .vdom", i + 1)
+                woke.debug("updateVDom() - Array - Storing #%i children in .vdom", i + 1)
                 vnode.vdom = children
             }
         }
         else if (woke.isComponentVNode(vnode)) {
-            woke.debug("parseVTree() - Component/Fragment - vnode is a Component")
+            woke.debug("updateVDom() - Component/Fragment - vnode is a Component")
 
             if (woke.isFragmentVNode(vnode)) {
-                woke.debug("parseVTree() - Fragment - vnode is a Fragment")
+                woke.debug("updateVDom() - Fragment - vnode is a Fragment")
 
                 if (!vnode.vdom) {
-                    woke.debug("parseVTree() - Fragment - First render")
-                    woke.debug("parseVTree() - Fragment - Parsing children")
+                    woke.debug("updateVDom() - Fragment - First render")
+                    woke.debug("updateVDom() - Fragment - Parsing children")
                     let subvdom = vnode.children
-                    vnode.vdom = woke.parseVTree(subvdom)
+                    vnode.vdom = woke.updateVDom(subvdom)
                 }
                 else if (vnode.children && vnode.vdom.length !== vnode.children.length) {
-                    woke.debug("parseVTree() - Fragment - The size of .children[] changed")
-                    woke.debug("parseVTree() - Fragment - Parsing children")
+                    woke.debug("updateVDom() - Fragment - The size of .children[] changed")
+                    woke.debug("updateVDom() - Fragment - Parsing children")
                     let subvdom = vnode.children
-                    vnode.vdom = woke.parseVTree(subvdom)
+                    vnode.vdom = woke.updateVDom(subvdom)
                 }
             }
             else {
-                woke.debug("parseVTree() - Component - vnode is a Component")
+                woke.debug("updateVDom() - Component - vnode is a Component")
 
                 vnode = woke.bindComponentState(vnode)
 
                 if (woke.isDirtyComponent(vnode)) {
-                    woke.debug("parseVTree() - Component - vnode is dirty")
-                    woke.debug("parseVTree() - Component - Have to recreate it's vdom")
+                    woke.debug("updateVDom() - Component - vnode is dirty")
+                    woke.debug("updateVDom() - Component - Have to recreate it's vdom")
                     let subvdom = vnode.nodeName.call()
-                    vnode.vdom = woke.parseVTree(subvdom)
+                    vnode.vdom = woke.updateVDom(subvdom)
                     woke.cleanComponent(vnode)
                 }
             }
         }
         else {
-            woke.debug("parseVTree() - vnode of unexpected kind: %o", vnode)
+            woke.debug("updateVDom() - vnode of unexpected kind: %o", vnode)
             return vnode
         }
 
@@ -540,7 +540,7 @@ let woke = {
                     woke.info("root: %o", root)
                     woke.info("vdom: %o", vdom)
 
-                    vdom = woke.parseVTree(vdom)
+                    vdom = woke.updateVDom(vdom)
 
                     woke.info("-- Objects after rendering --")
                     woke.info("root: %o", root)
