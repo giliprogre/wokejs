@@ -9,7 +9,15 @@ function Hello() {
         }
     }
 
-    //countTo2()
+    countTo2()
+
+    /*
+    return (
+        <>
+            <p>{this.counter}</p>
+        </>
+    )
+    */
 
     return (
         <>

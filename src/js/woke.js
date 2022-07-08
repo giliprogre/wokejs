@@ -428,6 +428,7 @@ let woke = {
         }
 
         if (woke.isDomElement(_vnode)) {
+            woke.outofDom()
             return _vnode
         }
 
@@ -467,6 +468,10 @@ let woke = {
         }
         else {
             woke.debug("createNewDom() - vnode of unexpected kind: %o", vnode)
+            node = String(vnode)
+            woke.debug("createNewDom() - Converting to String: %s", node)
+            node = document.createTextNode(node)
+            woke.debug("createNewDom() - Creating TextNode: %o", node)
             woke.outofDom()
             return node
         }

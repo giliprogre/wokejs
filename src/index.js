@@ -20,13 +20,11 @@ woke.app = () => {
     )
     */
 
-    /*
     return (
         <div>
             <Hello />
         </div>
     )
-    */
 
     /*
    return (
@@ -59,6 +57,7 @@ woke.app = () => {
     )
     */
 
+    /*
     return (
         <div>
             <>
@@ -67,6 +66,7 @@ woke.app = () => {
             </>
         </div>
     )
+    */
 }
 
 woke.awake("root")
