@@ -1,13 +1,12 @@
 import woke from './js/woke'
 import Hello from './js/Hello'
 import "./styles/main.scss"
-//import Joke from "./js/Joke"
-//import logo from './assets/logo.png'
-//import Video from './js/Video'
+import Joke from "./js/Joke"
+import logo from './assets/logo.png'
+import Video from './js/Video'
 
 woke.app = () => {
 
-    /*
     return (
         <div>
             <img id="laughImg" alt="" src={logo} />
@@ -18,13 +17,14 @@ woke.app = () => {
             <br />
         </div>
     )
-    */
 
+    /*
     return (
         <div>
             <Hello />
         </div>
     )
+    */
 
     /*
    return (
