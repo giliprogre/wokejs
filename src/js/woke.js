@@ -3,6 +3,11 @@ let woke = {
     __debug: true,
     __info: true,
     __print: true,
+    __tabDOM: 1,
+
+    intoDom() {woke.__tabDOM++},
+
+    outofDom() {woke.__tabDOM--},
 
     State: class {
         #dirty = false
@@ -24,19 +29,19 @@ let woke = {
 
     debug(...val) {
         if (woke.__debug) {
-            console.log(...val)
+            console.log("   ".repeat(woke.__tabDOM) + val[0], ...val.slice(1))
         }
     },
 
     info(...val) {
         if (woke.__info) {
-            console.log(...val)
+            console.log("   ".repeat(woke.__tabDOM) + val[0], ...val.slice(1))
         }
     },
 
     print(...val) {
         if (woke.__print) {
-            console.log(...val)
+            console.log("   ".repeat(woke.__tabDOM) + val[0], ...val.slice(1))
         }
     },
 
@@ -409,10 +414,128 @@ let woke = {
     },
     */
 
+    createNewDom(_vnode) {
+        woke.intoDom()
+        woke.debug("createNewDom(vnode: %o)", _vnode)
+        if (!_vnode) {
+            woke.debug("createNewDom() - null vnode, probably a leaf")
+            woke.outofDom()
+            return null
+        }
+
+        let vnode = _vnode
+        let node = null
+
+        if (woke.isHtmlVNode(vnode)) {
+            woke.debug("createNewDom() - HtmlVNode - vnode is a '%s' HtmlElement", vnode.nodeName)
+            woke.debug("createNewDom() - HtmlVNode - Creating a new '%s' node", vnode.nodeName)
+            node = document.createElement(vnode.nodeName)
+        }
+        else if (woke.isTextVNode(vnode)) {
+            woke.debug("createNewDom() - TextVNode - vnode is a TextVNode.")
+            woke.debug("createNewDom() - TextVNode - Creating a new TextNode.")
+            node = document.createTextNode(vnode)
+        }
+        else if (Array.isArray(vnode)) {
+            woke.debug("createNewDom() - Array - vnode is an Array")
+            woke.debug("createNewDom() - Array - Preparing the array")
+            node = []
+            for(let i = 0; i < vnode.length; i++)
+            {
+                woke.debug("createNewDom() - Array - Rendering child[%i]", i)
+                let child = woke.createNewDom(vnode[i])
+                node.push(child)
+            }
+        }
+        else if (woke.isComponentVNode(vnode)) {
+            if (woke.isFragmentVNode(vnode)) {
+                woke.debug("createNewDom() - Fragment - vnode is a Fragment")
+                node = woke.createNewDom(vnode.vdom)
+            }
+            else {
+                woke.debug("createNewDom() - Component - vnode is a Component")
+                node = woke.createNewDom(vnode.vdom)
+            }
+        }
+        else {
+            woke.debug("createNewDom() - vnode of unexpected kind: %o", vnode)
+            woke.outofDom()
+            return node
+        }
+
+        woke.debug("createNewDom() - Newly created node: %o", node)
+
+        if (!vnode.vdom) {
+            woke.debug("createNewDom() - Appending Children - vnode.vdom doesn't exist, it's a leaf vnode.")
+            if(Array.isArray(node) && node.length == 1)
+            {
+                node = node[0]
+            }
+            woke.outofDom()
+            return node
+        }
+        else if(Array.isArray(node)) {
+            woke.outofDom()
+            return node
+        }
+        else {
+            woke.debug("createNewDom() - Appending Children - vnode.vdom does exist.")
+            woke.debug("createNewDom() - Appending Children - rendering vdom children")
+            let children = woke.createNewDom(vnode.vdom)
+            if (!children) {
+                woke.debug("No children")
+                woke.outofDom()
+                return node
+            }
+            else if (Array.isArray(children)) {
+                for (let i = 0; i < children.length; i++) {
+                    woke.debug("createNewDom() - Appending Children - Rendering .vdom[%i].", i)
+                    let childNode = woke.createNewDom(children[i])
+                    woke.debug("createNewDom() - Appending Children - Appending .vdom[%i] to parent '%s'.", i, node)
+                    if (!childNode) {
+                        woke.debug("createNewDom() - Appending Children - .vdom[%i] is null. Probably an error. Skipping.", i)
+                    }
+                    if (Array.isArray(childNode)) {
+                        for (let j = 0; j < childNode.length; j++) {
+                            if (Array.isArray(node)) {
+                                node.push(childNode[j])
+                            }
+                            else {
+                                node.appendChild(childNode[j])
+                            }
+                        }
+                    }
+                    else {
+                        woke.debug("createNewDom() - Appending Children - Appending .vdom[%i]: %o, to parent '%o'.", i, childNode, node)
+                        if (Array.isArray(node)) {
+                            node.push(childNode)
+                        }
+                        else {
+                            node.appendChild(childNode)
+                        }
+                    }
+                }
+            }
+            else {
+                if (Array.isArray(node)) {
+                    node.push(children)
+                }
+                else {
+                    node.appendChild(children)
+                }
+            }
+        }
+
+        woke.outofDom()
+        return node
+    },
+
     updateVDom(_vnode) {
+        woke.intoDom()
         woke.debug("updateVDom(vnode: %o)", _vnode)
         if (!_vnode) {
             woke.debug("updateVDom() - null vnode, probably a leaf")
+            woke.outofDom()
             return null
         }
 
@@ -511,9 +634,11 @@ let woke = {
         }
         else {
             woke.debug("updateVDom() - vnode of unexpected kind: %o", vnode)
+            woke.outofDom()
             return vnode
         }
 
+        woke.outofDom()
         return vnode
     },
 
@@ -541,12 +666,21 @@ let woke = {
                     woke.info("-- Objects before rendering --")
                     woke.info("root: %o", root)
                     woke.info("vdom: %o", vdom)
+                    woke.info("new_dom: %o", new_dom)
 
+                    woke.info("---------------------")
+                    woke.info("--- UPDATING VDOM ---")
+                    woke.info("---------------------")
                     vdom = woke.updateVDom(vdom)
+                    woke.info("------------------------")
+                    woke.info("--- CREATING NEW DOM ---")
+                    woke.info("------------------------")
+                    new_dom = woke.createNewDom(vdom)
 
                     woke.info("-- Objects after rendering --")
                     woke.info("root: %o", root)
                     woke.info("vdom: %o", vdom)
+                    woke.info("new_dom: %o", new_dom)
                 } catch (error) {
                     woke.debug(error)
                 }

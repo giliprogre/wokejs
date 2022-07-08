@@ -9,7 +9,7 @@ function Hello() {
         }
     }
 
-    countTo2()
+    //countTo2()
 
     return (
         <>
