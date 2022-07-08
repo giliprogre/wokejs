@@ -5,9 +5,13 @@ let woke = {
     __print: true,
     __tabDOM: 1,
 
-    intoDom() {woke.__tabDOM++},
+    isDomElement(obj) {
+        return obj instanceof HTMLElement;
+    },
 
-    outofDom() {woke.__tabDOM--},
+    intoDom() { woke.__tabDOM++ },
+
+    outofDom() { woke.__tabDOM-- },
 
     State: class {
         #dirty = false
@@ -423,6 +427,10 @@ let woke = {
             return null
         }
 
+        if (woke.isDomElement(_vnode)) {
+            return _vnode
+        }
+
         let vnode = _vnode
         let node = null
 
@@ -440,12 +448,12 @@ let woke = {
             woke.debug("createNewDom() - Array - vnode is an Array")
             woke.debug("createNewDom() - Array - Preparing the array")
             node = []
-            for(let i = 0; i < vnode.length; i++)
-            {
+            for (let i = 0; i < vnode.length; i++) {
                 woke.debug("createNewDom() - Array - Rendering child[%i]", i)
                 let child = woke.createNewDom(vnode[i])
                 node.push(child)
             }
+            woke.debug("createNewDom() - Array - Rendered children", node)
         }
         else if (woke.isComponentVNode(vnode)) {
             if (woke.isFragmentVNode(vnode)) {
@@ -467,14 +475,17 @@ let woke = {
 
         if (!vnode.vdom) {
             woke.debug("createNewDom() - Appending Children - vnode.vdom doesn't exist, it's a leaf vnode.")
-            if(Array.isArray(node) && node.length == 1)
-            {
+            if (Array.isArray(node) && node.length == 1) {
+                woke.debug("createNewDom() - Node is an Array of size 1, returning child node: %o", node[0])
                 node = node[0]
+            }
+            else {
+                woke.debug("createNewDom() - Returning node: %o", node)
             }
             woke.outofDom()
             return node
         }
-        else if(Array.isArray(node)) {
+        else if (Array.isArray(node)) {
             woke.outofDom()
             return node
         }
