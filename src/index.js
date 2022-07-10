@@ -6,17 +6,20 @@ import logo from './assets/logo.png'
 import Video from './js/Video'
 
 woke.app = () => {
-
+    return (<Joke />)
+    /*
     return (
         <div>
             <img id="laughImg" alt="" src={logo} />
+            <Hello />
             <br />
-            {Video()}
+            <Video />
             <br />
-            {Joke()}
+            <Joke />
             <br />
         </div>
     )
+    */
 
     /*
     return (

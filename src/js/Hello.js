@@ -40,7 +40,9 @@ Hello.defaultState = class extends woke.State {
     #counter = 0
     get counter() { return this.#counter }
     set counter(_counter) { woke.debug("Setting counter"); this.tarnishComponent(); this.#counter = _counter }
-    increment() { this.counter = this.counter + 1 }
+    increment() {
+        this.counter = this.counter + 1
+    }
 }
 
 export default Hello

@@ -5,32 +5,6 @@ let woke = {
     __print: true,
     __tabDOM: 1,
 
-    isDomElement(obj) {
-        return obj instanceof HTMLElement;
-    },
-
-    intoDom() { woke.__tabDOM++ },
-
-    outofDom() { woke.__tabDOM-- },
-
-    State: class {
-        #dirty = false
-        get dirty() { return this.#dirty }
-
-        isDirty() {
-            return this.#dirty
-        }
-
-        tarnishComponent() {
-            this.#dirty = true
-            woke.tarnishVDOM()
-        }
-
-        cleanComponent() {
-            this.#dirty = false
-        }
-    },
-
     debug(...val) {
         if (woke.__debug) {
             console.log("   ".repeat(woke.__tabDOM) + val[0], ...val.slice(1))
@@ -46,6 +20,52 @@ let woke = {
     print(...val) {
         if (woke.__print) {
             console.log("   ".repeat(woke.__tabDOM) + val[0], ...val.slice(1))
+        }
+    },
+
+    VDOMisDirty() {
+        const res = woke.__dirtyVDOM > 0
+        return res
+    },
+
+    tarnishVDOM() {
+        woke.__dirtyVDOM++
+    },
+
+    cleanVDOM() {
+        if (woke.__dirtyVDOM > 0) {
+            woke.__dirtyVDOM--
+        }
+    },
+
+    isDomElement(obj) {
+        return obj instanceof HTMLElement;
+    },
+
+    intoDom() { woke.__tabDOM++ },
+
+    outofDom() { woke.__tabDOM-- },
+
+    State: class {
+        #dirty = 0
+        get dirty() { return this.#dirty }
+
+        isDirty() {
+            return this.#dirty > 0
+        }
+
+        tarnishComponent() {
+            this.#dirty++
+            woke.tarnishVDOM()
+        }
+
+        cleanComponent() {
+            if (this.#dirty > 0) {
+                this.#dirty--
+            }
+            else {
+                this.#dirty = 0
+            }
         }
     },
 
@@ -73,6 +93,7 @@ let woke = {
         // Copy attributes onto the new node
         for (let name in Object(vnode.attributes)) {
             if (name === 'onEvent') {
+                woke.debug("--- onEvent --- vnode: %o", vnode)
                 node.addEventListener(vnode.attributes[name][0], () => {
                     vnode.attributes[name][1]()
                     woke.tarnishVDOM()
@@ -94,27 +115,12 @@ let woke = {
             if (name === 'onEvent') {
                 node.addEventListener(vnode.attributes[name][0], () => {
                     vnode.attributes[name][1]()
-                    woke.tarnishVDOM()
+                    //woke.tarnishVDOM()
                 })
             }
             else {
                 node.setAttribute(name, vnode.attributes[name])
             }
-        }
-    },
-
-    VDOMisDirty() {
-        const res = woke.__dirtyVDOM > 0
-        return res
-    },
-
-    tarnishVDOM() {
-        woke.__dirtyVDOM++
-    },
-
-    cleanVDOM() {
-        if (woke.__dirtyVDOM > 0) {
-            woke.__dirtyVDOM--
         }
     },
 
@@ -292,10 +298,15 @@ let woke = {
                 woke.debug("bindComponentState() - Preserving previous state")
                 _state = vnode.nodeName.state
             }
-            else {
-                woke.debug("bindComponentState() - No previous state ")
+            else if (vnode.nodeName.defaultState) {
+                woke.debug("bindComponentState() - A default state exists")
                 woke.debug("bindComponentState() - Binding Function Component to default state")
                 _state = new vnode.nodeName.defaultState
+            }
+            else {
+                woke.debug("bindComponentState() - No previous or default state ")
+                woke.debug("bindComponentState() - Binding Function Component to empty state")
+                _state = new woke.State
             }
         }
         else {
@@ -477,6 +488,12 @@ let woke = {
         }
 
         woke.debug("createNewDom() - Newly created node: %o", node)
+
+        if (vnode.attributes) {
+            woke.debug("createNewDom() - Setting attributes: %o", vnode.attributes)
+            woke.copyAttributes(node, vnode)
+        }
+
 
         if (!vnode.vdom) {
             woke.debug("createNewDom() - Appending Children - vnode.vdom doesn't exist, it's a leaf vnode.")
@@ -697,6 +714,20 @@ let woke = {
                     woke.info("root: %o", root)
                     woke.info("vdom: %o", vdom)
                     woke.info("new_dom: %o", new_dom)
+                    woke.info("-----------------------")
+                    woke.info("--- SETTING NEW DOM ---")
+                    woke.info("-----------------------")
+                    root.innerHTML = ""
+                    if (Array.isArray(new_dom)) {
+                        for (let i = 0; i < new_dom.length; i++) {
+                            root.appendChild(new_dom[i])
+                        }
+                    }
+                    else {
+                        root.appendChild(new_dom)
+                    }
+
+                    woke.info("Done")
                 } catch (error) {
                     woke.debug(error)
                 }
