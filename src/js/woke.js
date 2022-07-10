@@ -99,6 +99,11 @@ let woke = {
                     woke.tarnishVDOM()
                 })
             }
+            else if (/^on\w+$/g.test(name))
+            {
+                let eventName = name.slice(2).toLowerCase()
+                node.addEventListener(eventName, vnode.attributes[name])
+            }
             else {
                 let old_attr = node.getAttribute(name)
                 let new_attr = vnode.attributes[name]
@@ -117,6 +122,11 @@ let woke = {
                     vnode.attributes[name][1]()
                     //woke.tarnishVDOM()
                 })
+            }
+            else if (/^on\w+$/g.test(name))
+            {
+                let eventName = name.slice(2).toLowerCase()
+                node.addEventListener(eventName, vnode.attributes[name])
             }
             else {
                 node.setAttribute(name, vnode.attributes[name])

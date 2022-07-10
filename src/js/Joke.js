@@ -6,7 +6,7 @@ function Joke() {
     return (
         <>
             <div id="joke" class="joke">{this.jokeText}</div>
-            <button id="jokeBtn" onClick={() => {console.log("click")}} class="btn">Get a new joke</button>
+            <button id="jokeBtn" onClick={() => { console.log("click"); this.getJoke() }} class="btn">Get a new joke</button>
         </>
     )
 }
@@ -15,9 +15,9 @@ Joke.defaultState = class extends woke.State {
     #pronouns = "he/him/his"
     get pronouns() { return this.#pronouns }
 
-    jokeText = ''
-    get jokeText() { return this.jokeText }
-    set jokeText(_jokeText) { this.tarnishComponent(); this.jokeText = _jokeText }
+    #jokeText = ''
+    get jokeText() { return this.#jokeText }
+    set jokeText(_jokeText) { this.#jokeText = _jokeText; this.tarnishComponent() }
     getJoke() {
         woke.debug("Previous 'this.jokeTest': %o", this)
         woke.print("JOKE - CALLBACK - Getting new Joke")
