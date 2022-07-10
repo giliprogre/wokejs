@@ -89,11 +89,10 @@ let woke = {
         return false
     },
 
-    diffAttributes(node, vnode) {
+    diffVAttributes(node, vnode) {
         // Copy attributes onto the new node
         for (let name in Object(vnode.attributes)) {
-            if (/^on\w+$/g.test(name))
-            {
+            if (/^on\w+$/g.test(name)) {
                 let eventName = name.slice(2).toLowerCase()
                 node.addEventListener(eventName, vnode.attributes[name])
             }
@@ -107,16 +106,53 @@ let woke = {
         }
     },
 
-    copyAttributes(node, vnode) {
+    copyVAttributes(src, dst) {
         // Copy attributes onto the new node
-        for (let name in Object(vnode.attributes)) {
-            if (/^on\w+$/g.test(name))
-            {
+        for (let name in Object(src.attributes)) {
+            if (/^on\w+$/g.test(name)) {
                 let eventName = name.slice(2).toLowerCase()
-                node.addEventListener(eventName, vnode.attributes[name])
+                dst.addEventListener(eventName, src.attributes[name])
             }
             else {
-                node.setAttribute(name, vnode.attributes[name])
+                let attrValue = src.attributes[name]
+                if (attrValue) {
+                    dst.setAttribute(name, attrValue)
+                }
+            }
+        }
+    },
+
+    diffAttributes(src, dst) {
+        // Copy src attributes onto dst
+        for (let i = 0; i < src.attributes.length; i++) {
+            let name = src.attributes[i].name
+            if (/^on\w+$/g.test(name)) {
+                let eventName = name.slice(2).toLowerCase()
+                dst.addEventListener(eventName, src.attributes[i].value)
+            }
+            else {
+                let src_attrValue = src.attributes[i].value
+                let dst_attrValue = dst.getAttribute(name)
+                if (src_attrValue && dst_attrValue && src_attrValue !== dst_attrValue) {
+                    dst.setAttribute(name, attrValue)
+                }
+            }
+        }
+    },
+
+    copyAttributes(src, dst) {
+        // Copy src attributes onto dst
+        for (let i = 0; i < src.attributes.length; i++) {
+            let name = src.attributes[i].name
+            if (/^on\w+$/g.test(name)) {
+                let eventName = name.slice(2).toLowerCase()
+                dst.addEventListener(eventName, src.attributes[i].value)
+            }
+            else {
+                let attrValue = src.attributes[i].value
+                if (attrValue) {
+                    dst.setAttribute(name, attrValue)
+                }
             }
         }
     },
@@ -243,14 +279,11 @@ let woke = {
     },
 
     createNewDom(_vnode) {
-        woke.intoDom()
         if (!_vnode) {
-            woke.outofDom()
             return null
         }
 
         if (woke.isDomElement(_vnode)) {
-            woke.outofDom()
             return _vnode
         }
 
@@ -281,12 +314,11 @@ let woke = {
         else {
             node = String(vnode)
             node = document.createTextNode(node)
-            woke.outofDom()
             return node
         }
 
         if (vnode.attributes) {
-            woke.copyAttributes(node, vnode)
+            woke.copyVAttributes(vnode, node)
         }
 
 
@@ -294,17 +326,14 @@ let woke = {
             if (Array.isArray(node) && node.length == 1) {
                 node = node[0]
             }
-            woke.outofDom()
             return node
         }
         else if (Array.isArray(node)) {
-            woke.outofDom()
             return node
         }
         else {
             let children = woke.createNewDom(vnode.vdom)
             if (!children) {
-                woke.outofDom()
                 return node
             }
             else if (Array.isArray(children)) {
@@ -343,14 +372,11 @@ let woke = {
             }
         }
 
-        woke.outofDom()
         return node
     },
 
     updateVDom(_vnode) {
-        woke.intoDom()
         if (!_vnode) {
-            woke.outofDom()
             return null
         }
 
@@ -382,7 +408,7 @@ let woke = {
             }
         }
         else if (woke.isTextVNode(vnode)) {
-            
+
         }
         else if (Array.isArray(vnode)) {
             if (!vnode.vdom) {
@@ -421,23 +447,39 @@ let woke = {
         }
         else {
             woke.debug("updateVDom() - vnode of unexpected kind: %o", vnode)
-            woke.outofDom()
             return vnode
         }
 
-        woke.outofDom()
         return vnode
     },
 
     renderDiff(node, new_node) {
-        node.innerHTML = ""
-        if (Array.isArray(new_node)) {
-            for (let i = 0; i < new_node.length; i++) {
-                node.appendChild(new_node[i])
-            }
+        woke.debug("woke.renderDiff()")
+        woke.debug("pre node: %o", node)
+        woke.debug("new node: %o", new_node)
+        woke.debug("pre node name: %o", node.nodeName)
+        woke.debug("new node name: %o", new_node.nodeName)
+
+        if (node.nodeName !== new_node.nodeName) {
+            woke.debug("renderDiff() NodeNames differ: node's '%s' vs new_node's '%s')", node.nodeName, new_node.nodeName)
         }
         else {
-            node.appendChild(new_node)
+            woke.debug("renderDiff() NodeNames coincide: node's '%s' vs new_node's '%s')", node.nodeName, new_node.nodeName)
+        }
+
+        woke.diffAttributes(new_node, node)
+
+        woke.debug("node.childNodes #: %o", node.childNodes.length)
+        woke.debug("new_node.childNodes #: %o", new_node.childNodes.length)
+        if (node.childNodes.length !== new_node.childNodes.length) {
+            woke.debug("node has a different number of children with respect to new_node")
+        }
+        else {
+            woke.debug("node and new_node have the same number of children")
+            for(let i = 0; i < node.childNodes.length; i++)
+            {
+                woke.renderDiff(node.childNodes[i], new_node.childNodes[i])
+            }
         }
     },
 
@@ -449,23 +491,35 @@ let woke = {
             woke.id = "root"
         }
 
-        let root = null
+        let root = document.getElementById(id)
         let new_dom = null
-        let old_vdom = null
-        let new_vdom = 42
         let vdom = woke.app()
 
         const renderLoop = () => {
             if (woke.VDOMisDirty()) {
                 // Have to render another pass
                 try {
-                    let root = document.getElementById(id)
-
                     vdom = woke.updateVDom(vdom)
 
                     new_dom = woke.createNewDom(vdom)
 
-                    this.renderDiff(root, new_dom)
+                    // Copy the top root element into an unmounted node
+                    let vroot = document.createElement(root.nodeName)
+                    woke.copyAttributes(root, vroot)
+
+                    // Attach the new_dom to the unmounted copied root node
+                    if (Array.isArray(new_dom)) {
+                        for (let i = 0; i < new_dom.length; i++) {
+                            vroot.appendChild(new_dom[i])
+                        }
+                    }
+                    else {
+                        vroot.appendChild(new_dom)
+                    }
+                    // Now the unmounted node tree replicates the mounted one
+                    woke.debug("Full unmounted tree: %o", vroot)
+                    // Both trees can be compared
+                    this.renderDiff(root, vroot)
                 } catch (error) {
                     woke.print(error)
                 }
