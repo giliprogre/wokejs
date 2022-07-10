@@ -3,7 +3,6 @@ import woke from './woke'
 function Hello() {
 
     const countTo2 = () => {
-        woke.debug("Counter1: %o", this.counter)
         if (this.counter < 2) {
             this.increment()
         }
@@ -24,7 +23,7 @@ function Hello() {
             <p>{this.test}</p>
             <p>2nd paragraph</p>
             <p>{this.counter}</p>
-            <button onClick={this.tarnishComponent}>Click</button>
+            <button class="btn" onClick={() => {this.increment()}}>Click</button>
         </>
     )
 }
@@ -39,7 +38,7 @@ Hello.defaultState = class extends woke.State {
 
     #counter = 0
     get counter() { return this.#counter }
-    set counter(_counter) { woke.debug("Setting counter"); this.tarnishComponent(); this.#counter = _counter }
+    set counter(_counter) { this.#counter = _counter; this.tarnishComponent(); }
     increment() {
         this.counter = this.counter + 1
     }

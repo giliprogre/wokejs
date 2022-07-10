@@ -6,7 +6,7 @@ function Joke() {
     return (
         <>
             <div id="joke" class="joke">{this.jokeText}</div>
-            <button id="jokeBtn" onClick={() => { console.log("click"); this.getJoke() }} class="btn">Get a new joke</button>
+            <button id="jokeBtn" onClick={() => { this.getJoke() }} class="btn">Get a new joke</button>
         </>
     )
 }
@@ -19,8 +19,6 @@ Joke.defaultState = class extends woke.State {
     get jokeText() { return this.#jokeText }
     set jokeText(_jokeText) { this.#jokeText = _jokeText; this.tarnishComponent() }
     getJoke() {
-        woke.debug("Previous 'this.jokeTest': %o", this)
-        woke.print("JOKE - CALLBACK - Getting new Joke")
         const config = {
             headers: {
                 Accept: 'application/json'
@@ -28,9 +26,6 @@ Joke.defaultState = class extends woke.State {
         }
 
         axios.get('https://icanhazdadjoke.com', config).then(res => {
-            woke.print("JOKE - CALLBACK - Got a new Joke text: %o", res.data.joke)
-            woke.print("JOKE - CALLBACK - Setting new Joke text")
-            woke.debug("Storing into 'this.jokeTest': %o", this)
             this.jokeText = res.data.joke
         })
     }

@@ -92,14 +92,7 @@ let woke = {
     diffAttributes(node, vnode) {
         // Copy attributes onto the new node
         for (let name in Object(vnode.attributes)) {
-            if (name === 'onEvent') {
-                woke.debug("--- onEvent --- vnode: %o", vnode)
-                node.addEventListener(vnode.attributes[name][0], () => {
-                    vnode.attributes[name][1]()
-                    woke.tarnishVDOM()
-                })
-            }
-            else if (/^on\w+$/g.test(name))
+            if (/^on\w+$/g.test(name))
             {
                 let eventName = name.slice(2).toLowerCase()
                 node.addEventListener(eventName, vnode.attributes[name])
@@ -117,13 +110,7 @@ let woke = {
     copyAttributes(node, vnode) {
         // Copy attributes onto the new node
         for (let name in Object(vnode.attributes)) {
-            if (name === 'onEvent') {
-                node.addEventListener(vnode.attributes[name][0], () => {
-                    vnode.attributes[name][1]()
-                    //woke.tarnishVDOM()
-                })
-            }
-            else if (/^on\w+$/g.test(name))
+            if (/^on\w+$/g.test(name))
             {
                 let eventName = name.slice(2).toLowerCase()
                 node.addEventListener(eventName, vnode.attributes[name])
@@ -154,147 +141,6 @@ let woke = {
         return value
     },
 
-    /*
-    renderVDOM(vnode) {
-        if (!vnode) {
-            return null
-        }
-
-        // For Strings I just create TextNodes
-        if (typeof vnode === 'string') {
-            return document.createTextNode(vnode)
-        }
-
-        if (typeof vnode.nodeName === "function") {
-            let children = []
-            for (let i = 0; i < vnode.children.length; i++) {
-                children.push(woke.renderVDOM(vnode.children[i]))
-            }
-            return children
-        }
-
-        let node
-        if (woke.validHTML(vnode.nodeName)) {
-            node = document.createElement(vnode.nodeName)
-        }
-        else {
-            woke.debug("Trying to render vnode: %o", vnode)
-            woke.debug("TODO: Render User-defined components")
-            return null
-        }
-
-        woke.diffAttributes(node, vnode)
-
-        // Render child nodes and then append them
-        for (let i = 0; i < vnode.children.length; i++) {
-            let child = woke.renderVDOM(vnode.children[i])
-            if (child && typeof child !== 'string' && child !== '') {
-                woke.addChild2Node(node, child)
-            }
-        }
-
-        return node;
-    },
-    
-    renderDiff(dom, _vdom) {
-        woke.debug("renderDiff(dom: %o, vdom: %o)", dom, _vdom)
-        woke.debug("NODE: %o", dom)
-        woke.debug("VNODE: %o", _vdom)
-
-        let vdom
-        if (typeof _vdom.nodeName === 'function') {
-            let inner_vdom
-            woke.debug("vdom.nodeName: %o = %o", typeof _vdom.nodeName, _vdom.nodeName)
-            let component_pronouns = _vdom.nodeName.pronouns
-            woke.debug("vdom.nodeName.pronouns => %o", component_pronouns)
-            inner_vdom = _vdom.nodeName.call()
-            if (typeof inner_vdom.nodeName === 'function' && inner_vdom.nodeName.name === 'Fragment') {
-                woke.debug("Analizing Fragment")
-                inner_vdom = inner_vdom.children
-            }
-            woke.debug("inner_vdom: %o", inner_vdom)
-            vdom = inner_vdom
-        }
-        else {
-            vdom = _vdom
-        }
-
-        woke.debug("renderDiff final VDOM to render: %o", vdom)
-
-
-        if ((dom && Object.prototype.isPrototypeOf.call(NodeList.prototype, dom)) && (vdom && Array.isArray(vdom))) {
-            woke.debug("Both dom & vdom are lists, dom is a NodeList & vdom is an array")
-            woke.debug("Compare [] to []")
-        }
-        else if (dom && Object.prototype.isPrototypeOf.call(NodeList.prototype, dom)) {
-            woke.debug("dom is a NodeList, vdom is an element")
-            woke.debug("Compare [] to element. NodeList can be empty, and element can be null")
-
-            if (!vdom) {
-                woke.debug("vdom is null")
-                woke.debug("Destroy all subelements of the NodeList")
-                for (let i = dom.length - 1; i >= 0; i--) {
-                    dom[i].remove()
-                }
-                return null
-            }
-
-            if (dom.length > 0) {
-                woke.debug("Destroy all subelements of the NodeList, except fot the 1st one")
-                for (let i = dom.length - 1; i > 0; i--) {
-                    dom[i].remove()
-                }
-
-                if (woke.diffNode2VNode(dom[0], vdom)) {
-                    woke.debug("dom[0]: %o, vdom: %o", dom[0], vdom)
-                    new_node = woke.renderVDOM(vdom)
-                    woke.debug("new_node: %o", new_node)
-                    if (Array.isArray(new_node)) {
-                        for (let n = 0; n < new_node.length; n++) {
-                            dom[0].parentElement.appendChild(new_node[n])
-                        }
-                    }
-                    else {
-                        dom[0].parentElement.appendChild(new_node)
-                    }
-                    dom[0].remove()
-                    return new_node
-                }
-                else {
-                    woke.diffAttributes(dom[0], vdom)
-                    let result = woke.renderDiff(dom[0].childNodes, vdom.children)
-                    woke.debug("woke.renderDiff(dom: %o, vdom: %o) => %o", dom[0].childNodes, vdom.children, result)
-                    return null
-                }
-            }
-            else {
-                let new_node = woke.renderVDOM(vdom)
-                return new_node
-            }
-        }
-        else if (vdom && Array.isArray(vdom)) {
-            woke.debug("dom is an element, vdom is an array")
-            woke.debug("Compare element to []. Array can be empty, and element can be null")
-        }
-        else if (dom && vdom) {
-            woke.debug("Both dom & vdom exist, and both of them are elements")
-            woke.debug("Compare element to element")
-        }
-        else if (dom && !vdom) {
-            woke.debug("dom exists, and vdom doesn't")
-            woke.debug("Have to destroy dom node")
-        }
-        else if (!dom && vdom) {
-            woke.debug("vdom exists, and dom doesn't")
-            woke.debug("Create new dom node from vnode")
-        }
-        else {
-            woke.print("ERROR - you shouldn't get here")
-            throw ("Renderer - Diff error.")
-        }
-    },
-    */
-
     isHtmlVNode(vnode) {
         return (vnode && typeof vnode.nodeName === 'string')
     },
@@ -302,37 +148,23 @@ let woke = {
     bindComponentState(vnode, state) {
         let _state
         if (!state) {
-            woke.debug("bindComponentState() - No additional state has been provided")
             if (vnode.nodeName.state) {
-                woke.debug("bindComponentState() - A previous state exists")
-                woke.debug("bindComponentState() - Preserving previous state")
                 _state = vnode.nodeName.state
             }
             else if (vnode.nodeName.defaultState) {
-                woke.debug("bindComponentState() - A default state exists")
-                woke.debug("bindComponentState() - Binding Function Component to default state")
                 _state = new vnode.nodeName.defaultState
             }
             else {
-                woke.debug("bindComponentState() - No previous or default state ")
-                woke.debug("bindComponentState() - Binding Function Component to empty state")
                 _state = new woke.State
             }
         }
         else {
-            woke.debug("bindComponentState() - An additional state has been provided")
-            woke.debug("bindComponentState() - Binding Function Component to the provided state")
             _state = state
         }
-        woke.debug("bindComponentState() - Setting state")
         vnode.nodeName.state = _state
-        woke.debug("bindComponentState() - The state that the function is going to be bound to: %o", _state)
         let f = vnode.nodeName
-        woke.debug("bindComponentState() - The previous function is: %o", f)
         vnode.nodeName = vnode.nodeName.bind(vnode.nodeName.state)
-        woke.debug("bindComponentState() - Saving state into new function")
         vnode.nodeName.state = _state
-        woke.debug("bindComponentState() - The bound function is: %o", vnode.nodeName)
         return vnode
     },
 
@@ -410,40 +242,9 @@ let woke = {
         }
     },
 
-    /*
-    compareVNodes(oldVNnode, newVNode) {
-        if (!oldVNnode) {
-            woke.debug("compareVNodes() - oldVNode: %o. Have to render newVNode: %o", oldVNnode, newVNode)
-            return false
-        }
-        else if (!newVNode) {
-            woke.debug("compareVNodes() - newVNode: %o. Have to clear oldVNode: %o", newVNode, oldVNnode)
-            return false
-        }
-
-        if (woke.getVNodeType(oldVNnode) !== woke.getVNodeType(newVNode)) { // VNodes of different kind
-            woke.debug("compareVNodes() - VNodes of different kind; oldVNode's: %s, newVNode's: %s", woke.getVNodeType(oldVNnode), woke.getVNodeType(newVNode))
-            return false
-        }
-
-        if (oldVNnode.children ? !newVNode.children : newVNode.children) { // XOR vnode.children
-            woke.debug("compareVNodes() - One of the vnodes doesn't have a children attribute, while the other does. oldVNode: %o, newVNode: %o", oldVNnode, newVNode)
-            return false
-        }
-
-        if (oldVNnode.children.length !== newVNode.children.length) {
-            return false
-        }
-
-        return true
-    },
-    */
-
     createNewDom(_vnode) {
         woke.intoDom()
-        woke.debug("createNewDom(vnode: %o)", _vnode)
         if (!_vnode) {
-            woke.debug("createNewDom() - null vnode, probably a leaf")
             woke.outofDom()
             return null
         }
@@ -457,62 +258,41 @@ let woke = {
         let node = null
 
         if (woke.isHtmlVNode(vnode)) {
-            woke.debug("createNewDom() - HtmlVNode - vnode is a '%s' HtmlElement", vnode.nodeName)
-            woke.debug("createNewDom() - HtmlVNode - Creating a new '%s' node", vnode.nodeName)
             node = document.createElement(vnode.nodeName)
         }
         else if (woke.isTextVNode(vnode)) {
-            woke.debug("createNewDom() - TextVNode - vnode is a TextVNode.")
-            woke.debug("createNewDom() - TextVNode - Creating a new TextNode.")
             node = document.createTextNode(vnode)
         }
         else if (Array.isArray(vnode)) {
-            woke.debug("createNewDom() - Array - vnode is an Array")
-            woke.debug("createNewDom() - Array - Preparing the array")
             node = []
             for (let i = 0; i < vnode.length; i++) {
-                woke.debug("createNewDom() - Array - Rendering child[%i]", i)
                 let child = woke.createNewDom(vnode[i])
                 node.push(child)
             }
-            woke.debug("createNewDom() - Array - Rendered children", node)
         }
         else if (woke.isComponentVNode(vnode)) {
             if (woke.isFragmentVNode(vnode)) {
-                woke.debug("createNewDom() - Fragment - vnode is a Fragment")
                 node = woke.createNewDom(vnode.vdom)
             }
             else {
-                woke.debug("createNewDom() - Component - vnode is a Component")
                 node = woke.createNewDom(vnode.vdom)
             }
         }
         else {
-            woke.debug("createNewDom() - vnode of unexpected kind: %o", vnode)
             node = String(vnode)
-            woke.debug("createNewDom() - Converting to String: %s", node)
             node = document.createTextNode(node)
-            woke.debug("createNewDom() - Creating TextNode: %o", node)
             woke.outofDom()
             return node
         }
 
-        woke.debug("createNewDom() - Newly created node: %o", node)
-
         if (vnode.attributes) {
-            woke.debug("createNewDom() - Setting attributes: %o", vnode.attributes)
             woke.copyAttributes(node, vnode)
         }
 
 
         if (!vnode.vdom) {
-            woke.debug("createNewDom() - Appending Children - vnode.vdom doesn't exist, it's a leaf vnode.")
             if (Array.isArray(node) && node.length == 1) {
-                woke.debug("createNewDom() - Node is an Array of size 1, returning child node: %o", node[0])
                 node = node[0]
-            }
-            else {
-                woke.debug("createNewDom() - Returning node: %o", node)
             }
             woke.outofDom()
             return node
@@ -522,19 +302,14 @@ let woke = {
             return node
         }
         else {
-            woke.debug("createNewDom() - Appending Children - vnode.vdom does exist.")
-            woke.debug("createNewDom() - Appending Children - rendering vdom children")
             let children = woke.createNewDom(vnode.vdom)
             if (!children) {
-                woke.debug("No children")
                 woke.outofDom()
                 return node
             }
             else if (Array.isArray(children)) {
                 for (let i = 0; i < children.length; i++) {
-                    woke.debug("createNewDom() - Appending Children - Rendering .vdom[%i].", i)
                     let childNode = woke.createNewDom(children[i])
-                    woke.debug("createNewDom() - Appending Children - Appending .vdom[%i] to parent '%s'.", i, node)
                     if (!childNode) {
                         woke.debug("createNewDom() - Appending Children - .vdom[%i] is null. Probably an error. Skipping.", i)
                     }
@@ -549,7 +324,6 @@ let woke = {
                         }
                     }
                     else {
-                        woke.debug("createNewDom() - Appending Children - Appending .vdom[%i]: %o, to parent '%o'.", i, childNode, node)
                         if (Array.isArray(node)) {
                             node.push(childNode)
                         }
@@ -575,9 +349,7 @@ let woke = {
 
     updateVDom(_vnode) {
         woke.intoDom()
-        woke.debug("updateVDom(vnode: %o)", _vnode)
         if (!_vnode) {
-            woke.debug("updateVDom() - null vnode, probably a leaf")
             woke.outofDom()
             return null
         }
@@ -585,27 +357,18 @@ let woke = {
         let vnode = _vnode
 
         if (woke.isHtmlVNode(vnode)) {
-            woke.debug("updateVDom() - HtmlVNode - vnode is a html velement")
-            woke.debug("updateVDom() - HtmlVNode - subvtree is in .children[]")
-
             if (!vnode.children) {
                 woke.debug("updateVDom() - HtmlVNode - vnode.children doesn't exist, it's a leaf vnode")
                 woke.debug("updateVDom() - HtmlVNode - TODO: Update leaf HtmlVNode.")
             }
             else if (!vnode.vdom) {
-                woke.debug("updateVDom() - HtmlVNode - vnode.vdom doesn't exist.")
-                woke.debug("updateVDom() - HtmlVNode - First render, populating .vdom from .children")
-
                 let children = []
                 let i
                 for (i = 0; i < vnode.children.length; i++) {
-                    woke.debug("updateVDom() - HtmlVNode - Parsing child[%i].", i)
                     let child = woke.updateVDom(vnode.children[i])
-                    woke.debug("updateVDom() - HtmlVNode - Done parsing child[%i].", i)
                     children.push(child)
                 }
 
-                woke.debug("updateVDom() - HtmlVNode - Storing #%i children in .vdom", i + 1)
                 vnode.vdom = children
             }
             else if (vnode.vdom.length != vnode.children.length) {
@@ -613,62 +376,43 @@ let woke = {
                 woke.debug("updateVDom() - HtmlVNode - TODO: Rerender different # of children.")
             }
             else {
-                woke.debug("updateVDom() - HtmlVNode - vnode.vdom already exists.")
-                woke.debug("updateVDom() - HtmlVNode - # of children remains the same, updating vdom")
                 for (let i = 0; i < vnode.vdom.length; i++) {
-                    woke.debug("updateVDom() - HtmlVNode - Updating .vdom[%i].", i)
                     vnode.vdom[i] = woke.updateVDom(vnode.vdom[i])
-                    woke.debug("updateVDom() - HtmlVNode - Done updating .vdom[%i].", i)
                 }
             }
         }
         else if (woke.isTextVNode(vnode)) {
-            woke.debug("updateVDom() - TextVNode - vnode is a TextVNode")
+            
         }
         else if (Array.isArray(vnode)) {
-            woke.debug("updateVDom() - Array - vnode is an Array")
             if (!vnode.vdom) {
-                woke.debug("updateVDom() - Array - vnode.vdom doesn't exist.")
-                woke.debug("updateVDom() - Array - First render, populating .vdom from .children")
-
                 let children = []
                 let i
                 for (i = 0; i < vnode.length; i++) {
-                    woke.debug("updateVDom() - Array - Updating child[%i].", i)
                     let child = woke.updateVDom(vnode[i])
-                    woke.debug("updateVDom() - Array - Done updating child[%i].", i)
                     children.push(child)
                 }
 
-                woke.debug("updateVDom() - Array - Storing #%i children in .vdom", i + 1)
                 vnode.vdom = children
             }
         }
         else if (woke.isComponentVNode(vnode)) {
             if (woke.isFragmentVNode(vnode)) {
-                woke.debug("updateVDom() - Fragment - vnode is a Fragment")
 
                 if (!vnode.vdom) {
-                    woke.debug("updateVDom() - Fragment - First render")
-                    woke.debug("updateVDom() - Fragment - Parsing children")
                     let subvdom = vnode.children
                     vnode.vdom = woke.updateVDom(subvdom)
                 }
                 else if (vnode.children && vnode.vdom.length !== vnode.children.length) {
-                    woke.debug("updateVDom() - Fragment - The size of .children[] changed")
-                    woke.debug("updateVDom() - Fragment - Parsing children")
                     let subvdom = vnode.children
                     vnode.vdom = woke.updateVDom(subvdom)
                 }
             }
             else {
-                woke.debug("updateVDom() - Component - vnode is a Component")
 
                 vnode = woke.bindComponentState(vnode)
 
                 if (woke.isDirtyComponent(vnode)) {
-                    woke.debug("updateVDom() - Component - vnode is dirty")
-                    woke.debug("updateVDom() - Component - Have to recreate it's vdom")
                     let subvdom = vnode.nodeName.call()
                     vnode.vdom = woke.updateVDom(subvdom)
                     woke.cleanComponent(vnode)
@@ -701,32 +445,14 @@ let woke = {
 
         const renderLoop = () => {
             if (woke.VDOMisDirty()) {
-                woke.info("--- BEGIN RENDER PASS ---")
                 // Have to render another pass
                 try {
                     let root = document.getElementById(id)
 
-                    woke.info("-- Objects before rendering --")
-                    woke.info("root: %o", root)
-                    woke.info("vdom: %o", vdom)
-                    woke.info("new_dom: %o", new_dom)
-
-                    woke.info("---------------------")
-                    woke.info("--- UPDATING VDOM ---")
-                    woke.info("---------------------")
                     vdom = woke.updateVDom(vdom)
-                    woke.info("------------------------")
-                    woke.info("--- CREATING NEW DOM ---")
-                    woke.info("------------------------")
+
                     new_dom = woke.createNewDom(vdom)
 
-                    woke.info("-- Objects after rendering --")
-                    woke.info("root: %o", root)
-                    woke.info("vdom: %o", vdom)
-                    woke.info("new_dom: %o", new_dom)
-                    woke.info("-----------------------")
-                    woke.info("--- SETTING NEW DOM ---")
-                    woke.info("-----------------------")
                     root.innerHTML = ""
                     if (Array.isArray(new_dom)) {
                         for (let i = 0; i < new_dom.length; i++) {
@@ -736,12 +462,9 @@ let woke = {
                     else {
                         root.appendChild(new_dom)
                     }
-
-                    woke.info("Done")
                 } catch (error) {
-                    woke.debug(error)
+                    woke.print(error)
                 }
-                woke.info("--- END RENDER PASS ---")
                 woke.cleanVDOM()
             }
 
