@@ -429,6 +429,18 @@ let woke = {
         return vnode
     },
 
+    renderDiff(node, new_node) {
+        node.innerHTML = ""
+        if (Array.isArray(new_node)) {
+            for (let i = 0; i < new_node.length; i++) {
+                node.appendChild(new_node[i])
+            }
+        }
+        else {
+            node.appendChild(new_node)
+        }
+    },
+
     app: () => { },
 
     awake(_id) {
@@ -453,15 +465,7 @@ let woke = {
 
                     new_dom = woke.createNewDom(vdom)
 
-                    root.innerHTML = ""
-                    if (Array.isArray(new_dom)) {
-                        for (let i = 0; i < new_dom.length; i++) {
-                            root.appendChild(new_dom[i])
-                        }
-                    }
-                    else {
-                        root.appendChild(new_dom)
-                    }
+                    this.renderDiff(root, new_dom)
                 } catch (error) {
                     woke.print(error)
                 }
